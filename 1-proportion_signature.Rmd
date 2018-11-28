@@ -40,6 +40,7 @@ gsc <- GeneSetCollection(list(
     GeneSet(setName="Dendritic Cells", c("FCER1A", "CST3"), collectionType=NullCollection()),
     GeneSet(setName="Megakaryocytes", c("PPBP"), collectionType=NullCollection())
 ))
+gsc
 ```
 
 Identify the complete list of markers used across all signatures above.
@@ -48,11 +49,12 @@ Act as if the markers above could be overlapping, even though they're not.
 ```{r}
 markers_unique <- unique(unlist(geneIds(gsc)))
 stopifnot(all(markers_unique %in% rownames(sce)))
+markers_unique
 ```
 
 Identify the cells positive for each marker
 
-```{r}
+```{r, results='asis'}
 isGeneDetected <- function(gene, sce, threshold=0, assay="counts") {
     cellsDetected <- assay(sce, assay)[gene, ] > threshold
     cellsDetected
@@ -68,6 +70,7 @@ makeMarkerDetectionMatrix <- function(sce, markers, threshold=0, assay="counts")
     detectedMarkers
 }
 markerDetectionMatrix <- makeMarkerDetectionMatrix(sce, markers_unique)
+knitr::kable(head(markerDetectionMatrix))
 ```
 
 Use filter rules to identify cells matching each signature
@@ -80,6 +83,7 @@ filts <- lapply(
 names(filts) <- names(gsc)
 filters <- FilterRules(filts)
 es <- evalSeparately(filters, as.data.frame(markerDetectionMatrix))
+knitr::kable(head(es))
 ```
 
 Tabulate the proportion of cells displaying each signature in each cluster

@@ -10,7 +10,8 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(GSEABase)
     library(S4Vectors)
@@ -93,7 +94,7 @@ for (cellTypeName in names(filts)) {
     countSignatureInCluster <- table(colData(sce)[, "ident"], es[, cellTypeName])[, "TRUE"]
     proportionSignatureByCluster[, cellTypeName] <- countSignatureInCluster / numberCellsInCluster
 }
-kable(proportionSignatureByCluster * 100, digits = 1)
+kable(proportionSignatureByCluster*100, digits=1)
 ```
 
 Visualize the result as a heat map.
@@ -102,15 +103,15 @@ See how the diagonal (displaying the tutorial annotations) shows high proportion
 ```{r}
 colnames(proportionSignatureByCluster) <- paste(
     colnames(proportionSignatureByCluster),
-    sprintf("(%s)", lapply(gsc, function(x){paste(geneIds(x), collapse = ", ")})),
+    sprintf("(%s)", lapply(gsc, function(x){paste(geneIds(x), collapse=", ")})),
     sep="\n"
 )
-Heatmap(matrix = t(proportionSignatureByCluster), cluster_rows = FALSE, cluster_columns = FALSE)
+Heatmap(matrix=t(proportionSignatureByCluster), cluster_rows=FALSE, cluster_columns=FALSE)
 ```
 
 Let signatures and clusters of cells cluster in the heat map.
 Unsurprisingly, the clusters annotated as "CD14+ Monocytes" and "FCGR3A+ Monocytes" show some similarity, as do the clusters annotated as "CD4 T cells" and "CD8 T cells".
 
 ```{r}
-Heatmap(matrix = t(proportionSignatureByCluster))
+Heatmap(matrix=t(proportionSignatureByCluster))
 ```

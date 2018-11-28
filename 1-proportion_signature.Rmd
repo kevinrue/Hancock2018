@@ -13,7 +13,9 @@ editor_options:
 knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
+    library(SingleCellExperiment)
     library(GSEABase)
+    library(Hancock)
     library(S4Vectors)
     library(knitr)
     library(ComplexHeatmap)
@@ -55,17 +57,17 @@ markers_unique
 Identify the cells positive for each marker
 
 ```{r, results='asis'}
-isGeneDetected <- function(gene, sce, threshold=0, assay="counts") {
-    cellsDetected <- assay(sce, assay)[gene, ] > threshold
-    cellsDetected
-}
+# isGeneDetected <- function(gene, sce, threshold=0, assay="counts") {
+#     cellsDetected <- assay(sce, assay)[gene, ] > threshold
+#     cellsDetected
+# }
 makeMarkerDetectionMatrix <- function(sce, markers, threshold=0, assay="counts") {
     detectedMarkers <- matrix(
         data=FALSE,
         nrow=ncol(sce), ncol=length(markers),
         dimnames=list(colnames(sce), markers))
     for (gene in markers) {
-        detectedMarkers[, gene] <- isGeneDetected(gene, sce, threshold, assay)
+        detectedMarkers[, gene] <- positiveForMarker(sce, gene, threshold, assay)
     }
     detectedMarkers
 }

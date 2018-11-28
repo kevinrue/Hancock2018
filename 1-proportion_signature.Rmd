@@ -10,6 +10,7 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 suppressPackageStartupMessages({
+    library(GSEABase)
     library(S4Vectors)
     library(knitr)
     library(ComplexHeatmap)
@@ -26,23 +27,23 @@ sce
 Define the signatures used in the tutorial
 
 ```{r}
-markers <- list(
-    "CD4 T cells" = c("IL7R"),
-    "CD14+ Monocytes" = c("CD14", "LYZ"),
-    "B cells" = c("MS4A1"),
-    "CD8 T cells" = c("CD8A"),
-    "FCGR3A+ Monocytes" = c("FCGR3A", "MS4A7"),
-    "NK cells" = c("GNLY", "NKG7"),
-    "Dendritic Cells" = c("FCER1A", "CST3"),
-    "Megakaryocytes" = c("PPBP")
-)
+gsc <- GeneSetCollection(list(
+    GeneSet(setName="CD4 T cells", c("IL7R"), collectionType=NullCollection()),
+    GeneSet(setName="CD14+ Monocytes", c("CD14", "LYZ"), collectionType=NullCollection()),
+    GeneSet(setName="B cells", c("MS4A1"), collectionType=NullCollection()),
+    GeneSet(setName="CD8 T cells", c("CD8A"), collectionType=NullCollection()),
+    GeneSet(setName="FCGR3A+ Monocytes", c("FCGR3A", "MS4A7"), collectionType=NullCollection()),
+    GeneSet(setName="NK cells", c("GNLY", "NKG7"), collectionType=NullCollection()),
+    GeneSet(setName="Dendritic Cells", c("FCER1A", "CST3"), collectionType=NullCollection()),
+    GeneSet(setName="Megakaryocytes", c("PPBP"), collectionType=NullCollection())
+))
 ```
 
 Identify the complete list of markers used across all signatures above.
 Act as if the markers above could be overlapping, even though they're not.
 
 ```{r}
-markers_unique <- unique(unlist(markers))
+markers_unique <- unique(unlist(geneIds(gsc)))
 stopifnot(all(markers_unique %in% rownames(sce)))
 ```
 

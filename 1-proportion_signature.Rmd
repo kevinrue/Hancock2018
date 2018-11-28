@@ -19,7 +19,7 @@ suppressPackageStartupMessages({
 Load the preprocessed SingleCellExperiment object of 10x PBMC 3k
 
 ```{r, }
-sce <- suppressPackageStartupMessages(readRDS("pbmc3k_tutorial.sce.rds"))
+sce <- readRDS("pbmc3k_tutorial.sce.rds")
 sce
 ```
 

@@ -71,10 +71,10 @@ Use filter rules to identify cells matching each signature
 
 ```{r}
 filts <- lapply(
-    names(markers),
-    function(x){ parse(text=paste(markers[[x]], collapse="&")) }
+    names(gsc),
+    function(x){ parse(text=paste(geneIds(gsc[[x]]), collapse="&")) }
 )
-names(filts) <- names(markers)
+names(filts) <- names(gsc)
 filters <- FilterRules(filts)
 es <- evalSeparately(filters, as.data.frame(markerDetectionMatrix))
 ```
@@ -100,7 +100,7 @@ See how the diagonal (displaying the tutorial annotations) shows high proportion
 ```{r}
 colnames(proportionSignatureByCluster) <- paste(
     colnames(proportionSignatureByCluster),
-    lapply(markers, paste, collapse = ","),
+    sprintf("(%s)", lapply(gsc, function(x){paste(geneIds(x), collapse = ", ")})),
     sep="\n"
 )
 Heatmap(matrix = t(proportionSignatureByCluster), cluster_rows = FALSE, cluster_columns = FALSE)

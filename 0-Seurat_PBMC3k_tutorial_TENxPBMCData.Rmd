@@ -2,7 +2,9 @@
 title: "Seurat PBMC 3k tutorial using TENxPBMCData"
 author: "Kevin Rue-Albrecht"
 date: "27/11/2018"
-output: html_document
+output:
+  html_document:
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---

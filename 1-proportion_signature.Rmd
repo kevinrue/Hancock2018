@@ -2,7 +2,9 @@
 title: "Proportion of cells matching signatures"
 author: "Kevin Rue-Albrecht"
 date: "24/11/2018"
-output: html_document
+output:
+  html_document:
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---

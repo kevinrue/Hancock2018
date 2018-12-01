@@ -82,7 +82,7 @@ In particular:
 - `method` stores the name of the method used to make the predictions
 - `packageVersion` stores the version of the `Hancock` package used to make the predictions
 - `ProportionPositiveByCluster` stores the matrix indicating the proportion of cells in each cluster that are positive for each signature (i.e., `GeneSet`) in `GeneSetCollection`
-- `TopSignatureByCluster` stores a named vector that indicates the predominant signature for each cluster
+- `TopSignatureByCluster` stores a named vector that indicates the predominant signature for each cluster. It is shown below.
 
 ```{r}
 metadata(sce)[["Hancock"]][["TopSignatureByCluster"]]

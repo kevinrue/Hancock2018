@@ -19,6 +19,8 @@ suppressPackageStartupMessages({
     library(S4Vectors)
     library(knitr)
     library(ComplexHeatmap)
+    library(ggplot2)
+    library(cowplot)
 })
 ```
 
@@ -106,3 +108,26 @@ Unsurprisingly, the clusters annotated as "CD14+ Monocytes" and "FCGR3A+ Monocyt
 ```{r}
 Heatmap(matrix=t(ProportionPositiveByCluster))
 ```
+
+Display the expression of each marker on t-SNE result.
+
+```{r, fig.height=10}
+ggList <- list()
+for (markerName in unique(unlist(geneIds(gsc)))) {
+    ggDataFrame <- data.frame(
+        reducedDim(sce, "TSNE"),
+        logcounts=assay(sce, "logcounts")[markerName, ]
+    )
+    cellIdentity <- names(which(sapply(geneIds(gsc), function(x){markerName %in% x})))
+    gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
+        geom_point(size=0.1) +
+        scale_color_viridis_c() +
+        labs(title=markerName, subtitle=cellIdentity, x=NULL, y=NULL) +
+        theme(
+            axis.text = element_blank(), axis.ticks = element_blank(),
+            legend.position = "bottom", text = element_text(size=rel(3)))
+    ggList[[markerName]] <- gg
+}
+cowplot::plot_grid(plotlist = ggList)
+```
+

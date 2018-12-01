@@ -22,14 +22,14 @@ suppressPackageStartupMessages({
 })
 ```
 
-Load the preprocessed SingleCellExperiment object of 10x PBMC 3k
+Load the preprocessed SingleCellExperiment object of 10x PBMC 3k.
 
 ```{r, }
 sce <- readRDS("pbmc3k_tutorial.sce.rds")
 sce
 ```
 
-Define the signatures used in the tutorial
+Define the signatures used in the tutorial.
 
 ```{r}
 gsc <- GeneSetCollection(list(
@@ -45,79 +45,64 @@ gsc <- GeneSetCollection(list(
 gsc
 ```
 
-Identify the complete list of markers used across all signatures above.
-Act as if the markers above could be overlapping, even though they're not.
+The `GeneSetCollection` can immediately be supplied to a `predict` S3 method, in combination with the `SummarizedExperiment` object to annotate.
 
 ```{r}
-markers_unique <- unique(unlist(geneIds(gsc)))
-stopifnot(all(markers_unique %in% rownames(sce)))
-markers_unique
+sce <- predict(gsc, sce, method="ProportionPositive", cluster.col="ident")
 ```
 
-Identify the cells positive for each marker
+The `SummarizedExperiment` object is returned with a number of additional metadata.
 
-```{r, results='asis'}
-# isGeneDetected <- function(gene, sce, threshold=0, assay="counts") {
-#     cellsDetected <- assay(sce, assay)[gene, ] > threshold
-#     cellsDetected
-# }
-makeMarkerDetectionMatrix <- function(sce, markers, threshold=0, assay="counts") {
-    detectedMarkers <- matrix(
-        data=FALSE,
-        nrow=ncol(sce), ncol=length(markers),
-        dimnames=list(colnames(sce), markers))
-    for (gene in markers) {
-        detectedMarkers[, gene] <- positiveForMarker(sce, gene, threshold, assay)
-    }
-    detectedMarkers
-}
-markerDetectionMatrix <- makeMarkerDetectionMatrix(sce, markers_unique)
-knitr::kable(head(markerDetectionMatrix))
-```
-
-Use filter rules to identify cells matching each signature
+Most users will be interested in the cell identity annotated to each cell in the object.
+This information is stored in `colData(sce)[["Hancock"]][["prediction"]]`, or `sce$Hancock$prediction`, in short.
 
 ```{r}
-filts <- lapply(
-    names(gsc),
-    function(x){ parse(text=paste(geneIds(gsc[[x]]), collapse="&")) }
-)
-names(filts) <- names(gsc)
-filters <- FilterRules(filts)
-es <- evalSeparately(filters, as.data.frame(markerDetectionMatrix))
-knitr::kable(head(es))
+table(sce$Hancock$prediction)
 ```
 
-Tabulate the proportion of cells displaying each signature in each cluster
+With `method="ProportionPositive"`, all cells in each of the cluster supplied were annotated with the predominant signature in the cluster.
+Here is one way to visualize the assignment of cell identities to each cluster.
 
 ```{r}
-proportionSignatureByCluster <- matrix(
-    data=FALSE,
-    nrow=nlevels(sce$ident), ncol=length(filts),
-    dimnames=list(levels(sce$ident), names(filts)))
-numberCellsInCluster <- table(colData(sce)[, "ident"])
-for (cellTypeName in names(filts)) {
-    countSignatureInCluster <- table(colData(sce)[, "ident"], es[, cellTypeName])[, "TRUE"]
-    proportionSignatureByCluster[, cellTypeName] <- countSignatureInCluster / numberCellsInCluster
-}
-kable(proportionSignatureByCluster*100, digits=1)
+table(sce$Hancock$prediction, sce$ident)
+```
+
+In addition to the final predictions, the updated `SummarizedExperiment` object also contain some additional information tracing to the process of prediction.
+That information can be found in `metadata(sce)[["Hancock"]]`.
+
+```{r}
+names(metadata(sce)[["Hancock"]])
+```
+
+In particular:
+
+- `GeneSetCollection` stores the `GeneSetCollection` object used to make the predictions
+- `method` stores the name of the method used to make the predictions
+- `packageVersion` stores the version of the `Hancock` package used to make the predictions
+- `ProportionPositiveByCluster` stores the matrix indicating the proportion of cells in each cluster that are positive for each signature (i.e., `GeneSet`) in `GeneSetCollection`
+- `TopSignatureByCluster` stores a named vector that indicates the predominant signature for each cluster
+
+```{r}
+metadata(sce)[["Hancock"]][["TopSignatureByCluster"]]
 ```
 
 Visualize the result as a heat map.
 See how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.
 
 ```{r}
-colnames(proportionSignatureByCluster) <- paste(
-    colnames(proportionSignatureByCluster),
-    sprintf("(%s)", lapply(gsc, function(x){paste(geneIds(x), collapse=", ")})),
+ProportionPositiveByCluster <- metadata(sce)[["Hancock"]][["ProportionPositiveByCluster"]]
+sceGSC <- metadata(sce)[["Hancock"]][["GeneSetCollection"]]
+colnames(ProportionPositiveByCluster) <- paste(
+    colnames(ProportionPositiveByCluster),
+    sprintf("(%s)", lapply(sceGSC, function(x){paste(geneIds(x), collapse=", ")})),
     sep="\n"
 )
-Heatmap(matrix=t(proportionSignatureByCluster), cluster_rows=FALSE, cluster_columns=FALSE)
+Heatmap(matrix=t(ProportionPositiveByCluster), cluster_rows=FALSE, cluster_columns=FALSE)
 ```
 
 Let signatures and clusters of cells cluster in the heat map.
 Unsurprisingly, the clusters annotated as "CD14+ Monocytes" and "FCGR3A+ Monocytes" show some similarity, as do the clusters annotated as "CD4 T cells" and "CD8 T cells".
 
 ```{r}
-Heatmap(matrix=t(proportionSignatureByCluster))
+Heatmap(matrix=t(ProportionPositiveByCluster))
 ```

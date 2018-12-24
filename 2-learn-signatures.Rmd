@@ -2,7 +2,9 @@
 title: "Learn Signatures from the PBMC 3k data set"
 author: "Kevin Rue-Albrecht"
 date: "19/12/2018"
-output: html_document
+output:
+  html_document:
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
@@ -14,6 +16,8 @@ suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(Hancock)
     library(GeneSet)
+    library(ggplot2)
+    library(cowplot)
 })
 ```
 
@@ -27,15 +31,17 @@ sce
 According to the tutorial, cluster 0 comprises CD4 T cells marked by the expression of IL7R.
 When applying the IL7R signature, we have shown that indeed IL7R is expressed at a relatively high frequency in cluster 0 and much less frequently detected in all other clusters.
 
-Now, let us programmatically identify markers by asking the question:
-"Which genes are detected at a high frequency in cluster 0, but rarely detected in all other clusters?"
+Now, let us programmatically identify the top 2 markers for each cluster by asking the question:
+"Which genes are detected in the target cluster at a frequency at least 20% higher than any other cluster"?
 
 ```{r}
-tgs <- learnSignature(sce, cluster.col="ident")
+tgs <- learnSignatures(
+    sce, method = "PositiveProportionDifference",
+    cluster.col="ident", assay.type = "counts", threshold = 0, n = 2, min.diff = 0.2)
 knitr::kable(tgs)
 ```
 
-Note that the table above does highlight some of the markers suggested in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
+Note that the table above does highlight some of the markers suggested in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) (listed below).
 Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).
 
 ```{r}
@@ -55,8 +61,7 @@ seuratTutorialMarkers
 Let us visualize the top 2 markers for each cluster.
 The cell type identity associated with markers mentioned in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) is indicated in each panel subtitle. 
 
-```{r, fig.height=12}
-require(ggplot2)
+```{r, fig.height=12, fig.width=8}
 ggList <- list()
 for (markerName in tgs$gene) {
     ggDataFrame <- data.frame(
@@ -64,16 +69,17 @@ for (markerName in tgs$gene) {
         logcounts=assay(sce, "logcounts")[markerName, ]
     )
     seuratIdentity <- as.character(subset(seuratTutorialMarkers, gene == markerName, "set", drop=TRUE))
+    if (length(seuratIdentity) == 0) { seuratIdentity <- " "} # trick to make equal plot dimensions
     gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +
         labs(title=markerName, subtitle=seuratIdentity, x=NULL, y=NULL) +
         theme(
             axis.text = element_blank(), axis.ticks = element_blank(),
-            text = element_text(size=rel(3)), legend.text = element_text(size=rel(2)),
+            title = element_text(size=rel(0.9)),
+            legend.text = element_text(size=rel(0.8)), legend.title = element_text(size=rel(0.8)),
             legend.position = "bottom")
     ggList[[markerName]] <- gg
 }
 cowplot::plot_grid(plotlist = ggList)
 ```
-

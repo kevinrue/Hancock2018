@@ -18,6 +18,7 @@ suppressPackageStartupMessages({
     library(GeneSet)
     library(ggplot2)
     library(cowplot)
+    library(shiny)
 })
 ```
 
@@ -83,3 +84,18 @@ for (markerName in tgs$gene) {
 }
 cowplot::plot_grid(plotlist = ggList)
 ```
+
+It is possible to interactively set the names of each gene signature learned using an interactive _Shiny_ app.
+For this purpose, let us learn as many markers as possible for each cluster.
+
+```{r}
+tgs <- learnSignatures(
+    sce, method = "PositiveProportionDifference",
+    cluster.col="ident", assay.type = "counts", threshold = 0, n = Inf, min.diff = 0.2)
+scePred <- predict(tgs, sce, method="ProportionPositive", cluster.col="ident")
+if (interactive()){
+    tgsOut <- runApp(shinyLabels(tgs, scePred))
+}
+```
+
+Note how the returned `tgs` object contains any update you may have done to the names of the gene sets interactively within the app.

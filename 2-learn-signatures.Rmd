@@ -86,7 +86,7 @@ cowplot::plot_grid(plotlist = ggList)
 ```
 
 It is possible to interactively set the names of each gene signature learned using an interactive _Shiny_ app.
-For this purpose, let us learn as many markers as possible for each cluster.
+For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `tbl_geneset` object) and the annotated `SingleCellExperiment` to the interactive app.
 
 ```{r}
 tgs <- learnSignatures(
@@ -94,8 +94,17 @@ tgs <- learnSignatures(
     cluster.col="ident", assay.type = "counts", threshold = 0, n = Inf, min.diff = 0.2)
 scePred <- predict(tgs, sce, method="ProportionPositive", cluster.col="ident")
 if (interactive()){
-    tgsOut <- runApp(shinyLabels(tgs, scePred))
+    tgs <- runApp(shinyLabels(tgs, scePred))
 }
 ```
 
 Note how the returned `tgs` object contains any update you may have done to the names of the gene sets interactively within the app.
+
+One may also visualize the proportion of cells positive for each signature in each cluster.
+If you renamed any signature in the previous chunk, the `predict` method may be run again to apply the new labels to the `SingleCellExperiment` object.
+
+```{r}
+scePred <- predict(tgs, sce, method="ProportionPositive", cluster.col="ident")
+plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)
+```
+

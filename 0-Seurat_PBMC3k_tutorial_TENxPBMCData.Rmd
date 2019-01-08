@@ -33,7 +33,7 @@ colnames(pbmc.data) <- paste0("Cell", seq_len(ncol(pbmc.data)))
 rownames(pbmc.data) <- make.unique(rowData(tenx_pbmc3k)[, "Symbol_TENx", drop=TRUE])
 ```
 
-From here on, follow the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) to the letter.
+From here on, follow the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) to the letter (code copied from https://satijalab.org/seurat/pbmc3k_tutorial.html on 2018-11-24).
 
 ```{r}
 library(Seurat)

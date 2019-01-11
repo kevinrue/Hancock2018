@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(cache=FALSE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
-    library(Hancock)
+    library(hancock)
     library(GeneSet)
     library(ggplot2)
     library(cowplot)

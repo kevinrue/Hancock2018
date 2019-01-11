@@ -15,7 +15,7 @@ knitr::opts_chunk$set(cache=FALSE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(GSEABase)
-    library(Hancock)
+    library(hancock)
     library(S4Vectors)
     library(knitr)
     library(ComplexHeatmap)
@@ -56,44 +56,44 @@ sce <- predict(gsc, sce, method="ProportionPositive", cluster.col="ident")
 The `SummarizedExperiment` object is returned with a number of additional metadata.
 
 Most users will be interested in the cell identity annotated to each cell in the object.
-This information is stored in `colData(sce)[["Hancock"]][["prediction"]]`, or `sce$Hancock$prediction`, in short.
+This information is stored in `colData(sce)[["hancock"]][["prediction"]]`, or `sce$hancock$prediction`, in short.
 
 ```{r}
-table(sce$Hancock$prediction)
+table(sce$hancock$prediction)
 ```
 
 With `method="ProportionPositive"`, all cells in each of the cluster supplied were annotated with the predominant signature in the cluster.
 Here is one way to visualize the assignment of cell identities to each cluster.
 
 ```{r}
-table(sce$Hancock$prediction, sce$ident)
+table(sce$hancock$prediction, sce$ident)
 ```
 
 In addition to the final predictions, the updated `SummarizedExperiment` object also contain some additional information tracing to the process of prediction.
-That information can be found in `metadata(sce)[["Hancock"]]`.
+That information can be found in `metadata(sce)[["hancock"]]`.
 
 ```{r}
-names(metadata(sce)[["Hancock"]])
+names(metadata(sce)[["hancock"]])
 ```
 
 In particular:
 
 - `GeneSetCollection` stores the `GeneSetCollection` object used to make the predictions
 - `method` stores the name of the method used to make the predictions
-- `packageVersion` stores the version of the `Hancock` package used to make the predictions
+- `packageVersion` stores the version of the `hancock` package used to make the predictions
 - `ProportionPositiveByCluster` stores the matrix indicating the proportion of cells in each cluster that are positive for each signature (i.e., `GeneSet`) in `GeneSetCollection`
 - `TopSignatureByCluster` stores a named vector that indicates the predominant signature for each cluster. It is shown below.
 
 ```{r}
-metadata(sce)[["Hancock"]][["TopSignatureByCluster"]]
+metadata(sce)[["hancock"]][["TopSignatureByCluster"]]
 ```
 
 Visualize the result as a heat map.
 See how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.
 
 ```{r}
-ProportionPositiveByCluster <- metadata(sce)[["Hancock"]][["ProportionPositiveByCluster"]]
-sceGSC <- metadata(sce)[["Hancock"]][["GeneSetCollection"]]
+ProportionPositiveByCluster <- metadata(sce)[["hancock"]][["ProportionPositiveByCluster"]]
+sceGSC <- metadata(sce)[["hancock"]][["GeneSetCollection"]]
 colnames(ProportionPositiveByCluster) <- paste(
     colnames(ProportionPositiveByCluster),
     sprintf("(%s)", lapply(sceGSC, function(x){paste(geneIds(x), collapse=", ")})),

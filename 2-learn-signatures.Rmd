@@ -108,3 +108,33 @@ scePred <- predict(tgs, sce, method="ProportionPositive", cluster.col="ident")
 plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)
 ```
 
+# Concepts
+
+## Scree detection plot
+
+The learning method `"PositiveProportionDifference"` allows the trimming of candidate markers to those that are _simultaneously_ detected in a minimal proportion of samples in the target cluster.
+For the purpose of defining qualitative gene signatures, it can be useful to ensure that all of the combined gene set that makes up a signature is fully detected in a minimal proportion of samples.
+
+To illustrate this process, the code chunk below computes and displays the proportion of cells in cluster `"0"` in which the N most frequently detected markers are simultaneously detected.
+The figure displays the proportion of samples with detectable expression of the most frequently detected gene, the two most frequently detected genes (simultaneously), etc.
+
+```{r}
+# Choose a cluster for this example
+cluster0 <- "0"
+topMarkers <- 100
+# Fetch only the cells of that cluster
+sce0 <- sce[, sce$ident == cluster0]
+# Extract a subset of the most frequently detected genes in those cells
+freq0 <- Matrix::rowSums(assay(sce0, "counts"))
+order0 <- order(freq0, decreasing=TRUE)
+# Test whether each marker is detected in each cell
+detection0 <- makeMarkerDetectionMatrix(sce0, head(rownames(sce0)[order0], topMarkers))
+# Compute the simultaneous detection rate for increasing numbers of markers
+scree0 <- makeMarkerProportionScree(detection0)
+# Plot
+ggplot(scree0, aes(markers, proportion)) +
+    geom_line() + geom_point(size=0.4) +
+    scale_y_continuous(limits=c(0, 1)) + scale_x_continuous(limits=c(1, topMarkers)) +
+    theme(panel.grid.major=element_line(color="grey90", size=0.5)) +
+    labs(x="Number of top markers", y="Proportion positive for all markers")
+```

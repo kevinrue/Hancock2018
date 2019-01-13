@@ -23,3 +23,8 @@ More information about the `r Githubpkg("kevinrue/hancock")` package.
 citation("hancock")
 ```
 
+# Links
+
+- [Source code](https://github.com/kevinrue/hancock2018) for this website.
+- [GitHub Pages](https://pages.github.com).
+- [rmarkdown’s site generator](https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html).

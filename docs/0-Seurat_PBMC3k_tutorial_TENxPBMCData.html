@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kevin Rue-Albrecht" />
+
+<meta name="date" content="2019-01-13" />
+
+<title>Seurat PBMC 3k tutorial using TENxPBMCData</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">hancock 2018</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Seurat PBMC 3k
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">Data</a>
+    </li>
+    <li>
+      <a href="1-proportion_signature.html">Predicting signatures</a>
+    </li>
+    <li>
+      <a href="2-learn-signatures.html">Learning signatures</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Seurat PBMC 3k tutorial using TENxPBMCData</h1>
+<h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
+<h4 class="date"><em>13 January 2019</em></h4>
+
+</div>
+
+
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>In this example, we use count data for 2,700 peripheral blood mononuclear cells (PBMC) obtained using the <a href="www.10xgenomics.com">10X Genomics</a> platform, and process it following the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> of the <em><a href="https://CRAN.R-project.org/package=Seurat">Seurat</a></em> package.</p>
+</div>
+<div id="getting-the-data" class="section level1">
+<h1>Getting the data</h1>
+<p>First, we fetch the data as a <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object using the <em><a href="https://bioconductor.org/packages/3.9/TENxPBMCData">TENxPBMCData</a></em> package. The first time the following code chunk is run may take longer, as the data is downloaded from the web and cached locally; subsequent evaluations of the code chunk should only take a few seconds as the data set is then loaded from the local cache.</p>
+<pre class="r"><code>library(TENxPBMCData)
+tenx_pbmc3k &lt;- TENxPBMCData(dataset=&quot;pbmc3k&quot;)</code></pre>
+<pre><code>## snapshotDate(): 2019-01-09</code></pre>
+<pre><code>## see ?TENxPBMCData and browseVignettes(&#39;TENxPBMCData&#39;) for documentation</code></pre>
+<pre><code>## downloading 0 resources</code></pre>
+<pre><code>## loading from cache 
+##     &#39;/Users/kralbrecht//.ExperimentHub/1607&#39;</code></pre>
+<pre class="r"><code>tenx_pbmc3k</code></pre>
+<pre><code>## class: SingleCellExperiment 
+## dim: 32738 2700 
+## metadata(0):
+## assays(1): counts
+## rownames(32738): ENSG00000243485 ENSG00000237613 ...
+##   ENSG00000215616 ENSG00000215611
+## rowData names(3): ENSEMBL_ID Symbol_TENx Symbol
+## colnames: NULL
+## colData names(11): Sample Barcode ... Individual Date_published
+## reducedDimNames(0):
+## spikeNames(0):</code></pre>
+</div>
+<div id="preparing-the-data" class="section level1">
+<h1>Preparing the data</h1>
+<p>Next, we prepare a sparse matrix that emulates the first section of the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a>.</p>
+<pre class="r"><code>library(Matrix)
+pbmc.data &lt;- as(counts(tenx_pbmc3k), &quot;Matrix&quot;)
+pbmc.data &lt;- as(pbmc.data, &quot;dgTMatrix&quot;)
+colnames(pbmc.data) &lt;- paste0(&quot;Cell&quot;, seq_len(ncol(pbmc.data)))
+rownames(pbmc.data) &lt;- make.unique(rowData(tenx_pbmc3k)[, &quot;Symbol_TENx&quot;, drop=TRUE])</code></pre>
+</div>
+<div id="seurat---guided-clustering-tutorial" class="section level1">
+<h1>Seurat - Guided Clustering Tutorial</h1>
+<p>From here on, follow the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> to the letter (code obtained on 2018-11-24).</p>
+<pre class="r"><code>library(Seurat)
+library(dplyr)
+# Initialize the Seurat object with the raw (non-normalized data).  Keep all
+# genes expressed in &gt;= 3 cells (~0.1% of the data). Keep all cells with at
+# least 200 detected genes
+pbmc &lt;- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, project=&quot;10X_PBMC&quot;)</code></pre>
+<pre class="r"><code># The number of genes and UMIs (nGene and nUMI) are automatically calculated
+# for every object by Seurat.  For non-UMI data, nUMI represents the sum of
+# the non-normalized values within a cell We calculate the percentage of
+# mitochondrial genes here and store it in percent.mito using AddMetaData.
+# We use object@raw.data since this represents non-transformed and
+# non-log-normalized counts The % of UMI mapping to MT-genes is a common
+# scRNA-seq QC metric.
+mito.genes &lt;- grep(pattern=&quot;^MT-&quot;, x=rownames(x=pbmc@data), value=TRUE)
+percent.mito &lt;- Matrix::colSums(pbmc@raw.data[mito.genes, ])/Matrix::colSums(pbmc@raw.data)
+
+# AddMetaData adds columns to object@meta.data, and is a great place to
+# stash QC stats
+pbmc &lt;- AddMetaData(object=pbmc, metadata=percent.mito, col.name=&quot;percent.mito&quot;)
+VlnPlot(object=pbmc, features.plot=c(&quot;nGene&quot;, &quot;nUMI&quot;, &quot;percent.mito&quot;), nCol=3)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code># GenePlot is typically used to visualize gene-gene relationships, but can
+# be used for anything calculated by the object, i.e. columns in
+# object@meta.data, PC scores etc.  Since there is a rare subset of cells
+# with an outlier level of high mitochondrial percentage and also low UMI
+# content, we filter these as well
+par(mfrow=c(1, 2))
+GenePlot(object=pbmc, gene1=&quot;nUMI&quot;, gene2=&quot;percent.mito&quot;)
+GenePlot(object=pbmc, gene1=&quot;nUMI&quot;, gene2=&quot;nGene&quot;)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code># We filter out cells that have unique gene counts over 2,500 or less than
+# 200 Note that low.thresholds and high.thresholds are used to define a
+# &#39;gate&#39;.  -Inf and Inf should be used if you don&#39;t want a lower or upper
+# threshold.
+pbmc &lt;- FilterCells(object=pbmc, subset.names=c(&quot;nGene&quot;, &quot;percent.mito&quot;), 
+    low.thresholds=c(200, -Inf), high.thresholds=c(2500, 0.05))</code></pre>
+<pre class="r"><code>pbmc &lt;- NormalizeData(object=pbmc, normalization.method=&quot;LogNormalize&quot;, 
+    scale.factor=10000)</code></pre>
+<pre class="r"><code>pbmc &lt;- FindVariableGenes(object=pbmc, mean.function=ExpMean, dispersion.function=LogVMR, 
+    x.low.cutoff=0.0125, x.high.cutoff=3, y.cutoff=0.5)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code>length(x=pbmc@var.genes)</code></pre>
+<pre><code>## [1] 1838</code></pre>
+<pre class="r"><code>pbmc &lt;- ScaleData(object=pbmc, vars.to.regress=c(&quot;nUMI&quot;, &quot;percent.mito&quot;))</code></pre>
+<pre><code>## Regressing out: nUMI, percent.mito</code></pre>
+<pre><code>## 
+## Time Elapsed:  11.0632710456848 secs</code></pre>
+<pre><code>## Scaling data matrix</code></pre>
+<pre class="r"><code>pbmc &lt;- RunPCA(object=pbmc, pc.genes=pbmc@var.genes, do.print=TRUE, pcs.print=1:5, 
+    genes.print=5)</code></pre>
+<pre><code>## [1] &quot;PC1&quot;
+## [1] &quot;CST3&quot;   &quot;TYROBP&quot; &quot;FCN1&quot;   &quot;LST1&quot;   &quot;AIF1&quot;  
+## [1] &quot;&quot;
+## [1] &quot;PTPRCAP&quot; &quot;IL32&quot;    &quot;LTB&quot;     &quot;CD2&quot;     &quot;CTSW&quot;   
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC2&quot;
+## [1] &quot;NKG7&quot; &quot;GZMB&quot; &quot;PRF1&quot; &quot;CST7&quot; &quot;GZMA&quot;
+## [1] &quot;&quot;
+## [1] &quot;CD79A&quot;    &quot;MS4A1&quot;    &quot;HLA-DQA1&quot; &quot;TCL1A&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC3&quot;
+## [1] &quot;PF4&quot;   &quot;PPBP&quot;  &quot;SDPR&quot;  &quot;SPARC&quot; &quot;GNG11&quot;
+## [1] &quot;&quot;
+## [1] &quot;CYBA&quot;     &quot;HLA-DPA1&quot; &quot;HLA-DPB1&quot; &quot;HLA-DRB1&quot; &quot;CD37&quot;    
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC4&quot;
+## [1] &quot;IL32&quot;   &quot;GIMAP7&quot; &quot;AQP3&quot;   &quot;FYB&quot;    &quot;MAL&quot;   
+## [1] &quot;&quot;
+## [1] &quot;CD79A&quot;    &quot;HLA-DQA1&quot; &quot;CD79B&quot;    &quot;MS4A1&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC5&quot;
+## [1] &quot;FCER1A&quot;  &quot;LGALS2&quot;  &quot;MS4A6A&quot;  &quot;S100A8&quot;  &quot;CLEC10A&quot;
+## [1] &quot;&quot;
+## [1] &quot;FCGR3A&quot;        &quot;CTD-2006K23.1&quot; &quot;IFITM3&quot;        &quot;ABI3&quot;         
+## [5] &quot;CEBPB&quot;        
+## [1] &quot;&quot;
+## [1] &quot;&quot;</code></pre>
+<pre class="r"><code># Examine and visualize PCA results a few different ways
+PrintPCA(object=pbmc, pcs.print=1:5, genes.print=5, use.full=FALSE)</code></pre>
+<pre><code>## [1] &quot;PC1&quot;
+## [1] &quot;CST3&quot;   &quot;TYROBP&quot; &quot;FCN1&quot;   &quot;LST1&quot;   &quot;AIF1&quot;  
+## [1] &quot;&quot;
+## [1] &quot;PTPRCAP&quot; &quot;IL32&quot;    &quot;LTB&quot;     &quot;CD2&quot;     &quot;CTSW&quot;   
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC2&quot;
+## [1] &quot;NKG7&quot; &quot;GZMB&quot; &quot;PRF1&quot; &quot;CST7&quot; &quot;GZMA&quot;
+## [1] &quot;&quot;
+## [1] &quot;CD79A&quot;    &quot;MS4A1&quot;    &quot;HLA-DQA1&quot; &quot;TCL1A&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC3&quot;
+## [1] &quot;PF4&quot;   &quot;PPBP&quot;  &quot;SDPR&quot;  &quot;SPARC&quot; &quot;GNG11&quot;
+## [1] &quot;&quot;
+## [1] &quot;CYBA&quot;     &quot;HLA-DPA1&quot; &quot;HLA-DPB1&quot; &quot;HLA-DRB1&quot; &quot;CD37&quot;    
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC4&quot;
+## [1] &quot;IL32&quot;   &quot;GIMAP7&quot; &quot;AQP3&quot;   &quot;FYB&quot;    &quot;MAL&quot;   
+## [1] &quot;&quot;
+## [1] &quot;CD79A&quot;    &quot;HLA-DQA1&quot; &quot;CD79B&quot;    &quot;MS4A1&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;&quot;
+## [1] &quot;&quot;
+## [1] &quot;PC5&quot;
+## [1] &quot;FCER1A&quot;  &quot;LGALS2&quot;  &quot;MS4A6A&quot;  &quot;S100A8&quot;  &quot;CLEC10A&quot;
+## [1] &quot;&quot;
+## [1] &quot;FCGR3A&quot;        &quot;CTD-2006K23.1&quot; &quot;IFITM3&quot;        &quot;ABI3&quot;         
+## [5] &quot;CEBPB&quot;        
+## [1] &quot;&quot;
+## [1] &quot;&quot;</code></pre>
+<pre class="r"><code>VizPCA(object=pbmc, pcs.use=1:2)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code>PCAPlot(object=pbmc, dim.1=1, dim.2=2)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre class="r"><code># ProjectPCA scores each gene in the dataset (including genes not included
+# in the PCA) based on their correlation with the calculated components.
+# Though we don&#39;t use this further here, it can be used to identify markers
+# that are strongly correlated with cellular heterogeneity, but may not have
+# passed through variable gene selection.  The results of the projected PCA
+# can be explored by setting use.full=T in the functions above
+pbmc &lt;- ProjectPCA(object=pbmc, do.print=FALSE)</code></pre>
+<pre class="r"><code>PCHeatmap(object=pbmc, pc.use=1, cells.use=500, do.balanced=TRUE, label.columns=FALSE)</code></pre>
+<pre><code>## Warning in heatmap.2(data.use, Rowv = NA, Colv = NA, trace = &quot;none&quot;, col =
+## col.use, : Discrepancy: Rowv is FALSE, while dendrogram is `both&#39;. Omitting
+## row dendogram.</code></pre>
+<pre><code>## Warning in heatmap.2(data.use, Rowv = NA, Colv = NA, trace = &quot;none&quot;, col
+## = col.use, : Discrepancy: Colv is FALSE, while dendrogram is `column&#39;.
+## Omitting column dendogram.</code></pre>
+<pre><code>## Warning in plot.window(...): &quot;dimTitle&quot; is not a graphical parameter</code></pre>
+<pre><code>## Warning in plot.xy(xy, type, ...): &quot;dimTitle&quot; is not a graphical parameter</code></pre>
+<pre><code>## Warning in title(...): &quot;dimTitle&quot; is not a graphical parameter</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code>PCHeatmap(object=pbmc, pc.use=1:12, cells.use=500, do.balanced=TRUE, 
+    label.columns=FALSE, use.full=FALSE)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>Small deviation from the tutorial. Skip the lengthy JackStraw computation.</p>
+<pre class="r"><code># NOTE: This process can take a long time for big datasets, comment out for
+# expediency.  More approximate techniques such as those implemented in
+# PCElbowPlot() can be used to reduce computation time
+if (FALSE) {
+    pbmc &lt;- JackStraw(object=pbmc, num.replicate=100, display.progress=FALSE)
+    JackStrawPlot(object=pbmc, PCs=1:12)
+}</code></pre>
+<pre class="r"><code>PCElbowPlot(object=pbmc)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<pre class="r"><code># save.SNN=T saves the SNN so that the clustering algorithm can be rerun
+# using the same graph but with a different resolution value (see docs for
+# full details)
+pbmc &lt;- FindClusters(object=pbmc, reduction.type=&quot;pca&quot;, dims.use=1:10, 
+    resolution=0.6, print.output=0, save.SNN=TRUE)</code></pre>
+<pre class="r"><code>PrintFindClustersParams(object=pbmc)</code></pre>
+<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-01-13 15:53:47
+## =============================================================================
+## Resolution: 0.6
+## -----------------------------------------------------------------------------
+## Modularity Function    Algorithm         n.start         n.iter
+##      1                   1                 100             10
+## -----------------------------------------------------------------------------
+## Reduction used          k.param          prune.SNN
+##      pca                 30                0.0667
+## -----------------------------------------------------------------------------
+## Dims used in calculation
+## =============================================================================
+## 1 2 3 4 5 6 7 8 9 10</code></pre>
+<pre class="r"><code>pbmc &lt;- RunTSNE(object=pbmc, dims.use=1:10, do.fast=TRUE)</code></pre>
+<pre class="r"><code># note that you can set do.label=T to help label individual clusters
+TSNEPlot(object=pbmc)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p>Save the <code>seurat</code> object</p>
+<pre class="r"><code>saveRDS(pbmc, file=&quot;pbmc3k_tutorial.rds&quot;)</code></pre>
+<p>Save the equivalent <code>SingleCellExperiment</code> object</p>
+<pre class="r"><code>sce_pbmc &lt;- as.SingleCellExperiment(pbmc)
+saveRDS(sce_pbmc, file=&quot;pbmc3k_tutorial.sce.rds&quot;)</code></pre>
+<p>Note that the marker genes used to later assign cell identities to the various clusters are listed below</p>
+<pre class="r"><code>## Markers and cell type annotations by cluster
+# Cluster ID    Markers         Cell Type
+# 0             IL7R            CD4 T cells
+# 1             CD14, LYZ       CD14+ Monocytes
+# 2             MS4A1           B cells
+# 3             CD8A            CD8 T cells
+# 4             FCGR3A, MS4A7   FCGR3A+ Monocytes
+# 5             GNLY, NKG7      NK cells
+# 6             FCER1A, CST3    Dendritic Cells
+# 7             PPBP            Megakaryocytes</code></pre>
+</div>
+<div id="next" class="section level1">
+<h1>Next</h1>
+<ul>
+<li><a href="1-proportion_signature.html">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</a></li>
+<li><a href="2-learn-signatures.html">Learning Gene Signatures from the Seurat PBMC 3k Tutorial</a></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

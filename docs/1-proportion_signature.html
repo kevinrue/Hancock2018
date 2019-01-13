@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kevin Rue-Albrecht" />
+
+<meta name="date" content="2019-01-13" />
+
+<title>Applying Gene Signatures to the Seurat PBMC 3k Tutorial</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">hancock 2018</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Seurat PBMC 3k
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">Data</a>
+    </li>
+    <li>
+      <a href="1-proportion_signature.html">Predicting signatures</a>
+    </li>
+    <li>
+      <a href="2-learn-signatures.html">Learning signatures</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</h1>
+<h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
+<h4 class="date"><em>13 January 2019</em></h4>
+
+</div>
+
+
+<div id="example-data-set" class="section level1">
+<h1>Example data set</h1>
+<p>First, load the preprocessed <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC)</p>
+<pre class="r"><code>sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
+sce</code></pre>
+<pre><code>## class: SingleCellExperiment 
+## dim: 13714 2638 
+## metadata(0):
+## assays(2): counts logcounts
+## rownames(13714): AL627309.1 AP006222.2 ... PNRC2.1 SRSF10.1
+## rowData names(4): gene gene.mean gene.dispersion
+##   gene.dispersion.scaled
+## colnames(2638): Cell1 Cell2 ... Cell2699 Cell2700
+## colData names(6): nGene nUMI ... res.0.6 ident
+## reducedDimNames(2): PCA TSNE
+## spikeNames(0):</code></pre>
+</div>
+<div id="gene-signatures" class="section level1">
+<h1>Gene signatures</h1>
+<p>Declare the predefined gene signatures used in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat - Guided Clustering Tutorial</a></p>
+<pre class="r"><code>gsc &lt;- GeneSetCollection(list(
+    GeneSet(setName=&quot;CD4 T cells&quot;, c(&quot;IL7R&quot;)),
+    GeneSet(setName=&quot;CD14+ Monocytes&quot;, c(&quot;CD14&quot;, &quot;LYZ&quot;)),
+    GeneSet(setName=&quot;B cells&quot;, c(&quot;MS4A1&quot;)),
+    GeneSet(setName=&quot;CD8 T cells&quot;, c(&quot;CD8A&quot;)),
+    GeneSet(setName=&quot;FCGR3A+ Monocytes&quot;, c(&quot;FCGR3A&quot;, &quot;MS4A7&quot;)),
+    GeneSet(setName=&quot;NK cells&quot;, c(&quot;GNLY&quot;, &quot;NKG7&quot;)),
+    GeneSet(setName=&quot;Dendritic Cells&quot;, c(&quot;FCER1A&quot;, &quot;CST3&quot;)),
+    GeneSet(setName=&quot;Megakaryocytes&quot;, c(&quot;PPBP&quot;))
+))
+gsc</code></pre>
+<pre><code>## GeneSetCollection
+##   names: CD4 T cells, CD14+ Monocytes, ..., Megakaryocytes (8 total)
+##   unique identifiers: IL7R, CD14, ..., PPBP (12 total)
+##   types in collection:
+##     geneIdType: NullIdentifier (1 total)
+##     collectionType: NullCollection (1 total)</code></pre>
+</div>
+<div id="applying-signatures-to-a-data-set" class="section level1">
+<h1>Applying signatures to a data set</h1>
+<div id="the-predict-method" class="section level2">
+<h2>The <code>predict</code> method</h2>
+<p>The <em><a href="https://bioconductor.org/packages/3.9/GSEABase">GSEABase</a></em> <code>GeneSetCollection</code> object can immediately be supplied to the <code>predict</code> S3 method, in combination with the <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object to annotate.</p>
+<pre class="r"><code>sce &lt;- predict(gsc, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)</code></pre>
+</div>
+<div id="prediction-outputs" class="section level2">
+<h2>Prediction outputs</h2>
+<p>The updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object is returned, with a number of additional metadata.</p>
+<p>The key output is the cell identity predicted for each cell in the object. This information is stored in <code>colData(sce)[[&quot;hancock&quot;]][[&quot;prediction&quot;]]</code>, or <code>sce$hancock$prediction</code>, in short.</p>
+<pre class="r"><code>table(sce$hancock$prediction)</code></pre>
+<pre><code>## 
+##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
+##              1151               479               342               308 
+## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
+##               157               155                32                14</code></pre>
+<p>With <code>method=&quot;ProportionPositive&quot;</code>, all cells in each cluster were annotated with the predominant signature in their corresponding cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell.</p>
+<pre class="r"><code>table(sce$hancock$prediction, sce$ident)</code></pre>
+<pre><code>##                    
+##                        0    1    2    3    4    5    6    7
+##   CD4 T cells       1151    0    0    0    0    0    0    0
+##   CD14+ Monocytes      0  479    0    0    0    0    0    0
+##   B cells              0    0  342    0    0    0    0    0
+##   CD8 T cells          0    0    0  308    0    0    0    0
+##   FCGR3A+ Monocytes    0    0    0    0  157    0    0    0
+##   NK cells             0    0    0    0    0  155    0    0
+##   Dendritic Cells      0    0    0    0    0    0   32    0
+##   Megakaryocytes       0    0    0    0    0    0    0   14</code></pre>
+<p>This can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.</p>
+<p>In addition to the final predictions, the updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object also contain some additional information tracing to the process of prediction. That information can be found in <code>metadata(sce)[[&quot;hancock&quot;]]</code>.</p>
+<pre class="r"><code>names(metadata(sce)[[&quot;hancock&quot;]])</code></pre>
+<pre><code>## [1] &quot;GeneSets&quot;                    &quot;method&quot;                     
+## [3] &quot;packageVersion&quot;              &quot;ProportionPositiveByCluster&quot;
+## [5] &quot;TopSignatureByCluster&quot;</code></pre>
+<p>In particular:</p>
+<ul>
+<li><code>GeneSets</code> stores the <code>GeneSetCollection</code> object used to make the predictions</li>
+<li><code>method</code> stores the name of the method used to make the predictions</li>
+<li><code>packageVersion</code> stores the version of the <code>hancock</code> package used to make the predictions</li>
+<li><code>ProportionPositiveByCluster</code> stores the matrix indicating the proportion of cells in each cluster that are positive for each signature (i.e., <code>GeneSet</code>) in <code>GeneSetCollection</code></li>
+<li><code>TopSignatureByCluster</code> stores a named vector that indicates the predominant signature for each cluster. It is shown below.</li>
+</ul>
+<pre class="r"><code>metadata(sce)[[&quot;hancock&quot;]][[&quot;TopSignatureByCluster&quot;]]</code></pre>
+<pre><code>##                 0                 1                 2                 3 
+##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
+##                 4                 5                 6                 7 
+## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
+## 8 Levels: CD4 T cells CD14+ Monocytes B cells ... Megakaryocytes</code></pre>
+</div>
+</div>
+<div id="visualizing-predictions" class="section level1">
+<h1>Visualizing predictions</h1>
+<div id="heat-map" class="section level2">
+<h2>Heat map</h2>
+<p>It is possible to visualize the result as a heat map. See how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.</p>
+<pre class="r"><code>plotProportionPositive(sce, cluster_rows=FALSE, cluster_columns=FALSE)</code></pre>
+<p><img src="1-proportion_signature_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>We can also let signatures and clusters of cells cluster in the heat map. Not surprisingly, the clusters annotated as “CD14+ Monocytes” and “FCGR3A+ Monocytes” show some similarity, as do the clusters annotated as “CD4 T cells” and “CD8 T cells”.</p>
+<pre class="r"><code>plotProportionPositive(sce)</code></pre>
+<p><img src="1-proportion_signature_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="reduced-dimension" class="section level2">
+<h2>Reduced dimension</h2>
+<p>We can also display the expression of each marker on t-SNE result.</p>
+<pre class="r"><code>ggList &lt;- list()
+for (markerName in unique(unlist(geneIds(gsc)))) {
+    ggDataFrame &lt;- data.frame(
+        reducedDim(sce, &quot;TSNE&quot;),
+        logcounts=assay(sce, &quot;logcounts&quot;)[markerName, ]
+    )
+    cellIdentity &lt;- names(which(sapply(geneIds(gsc), function(x){markerName %in% x})))
+    gg &lt;- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
+        geom_point(size=0.1) +
+        scale_color_viridis_c() +
+        labs(title=markerName, subtitle=cellIdentity, x=NULL, y=NULL) +
+        theme(
+            axis.text = element_blank(), axis.ticks = element_blank(),
+            text = element_text(size=rel(3)), legend.text = element_text(size=rel(2)),
+            legend.position = &quot;bottom&quot;)
+    ggList[[markerName]] &lt;- gg
+}
+cowplot::plot_grid(plotlist = ggList)</code></pre>
+<p><img src="1-proportion_signature_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+</div>
+<div id="see-also" class="section level1">
+<h1>See also</h1>
+<ul>
+<li><a href="2-learn-signatures.html">Learning Gene Signatures from the Seurat PBMC 3k Tutorial</a></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

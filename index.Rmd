@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-This website provides a collection of notebooks that demonstrate usage of the hancock package.
+This website provides a collection of notebooks that demonstrate usage of the `r Githubpkg("kevinrue/hancock")` package.
 
 # Data sets
 

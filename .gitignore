@@ -4,5 +4,4 @@
 .Ruserdata
 *.rds
 *_cache
-*_files
 .DS_Store

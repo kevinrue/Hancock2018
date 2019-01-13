@@ -1,7 +1,7 @@
 ---
-title: "Proportion of cells matching signatures"
+title: "Applying Gene Signatures to the Seurat PBMC 3k Tutorial"
 author: "Kevin Rue-Albrecht"
-date: "24/11/2018"
+date: "`r BiocStyle::doc_date()`"
 output:
   html_document:
     code_folding: hide
@@ -11,7 +11,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(GSEABase)
@@ -24,14 +24,18 @@ suppressPackageStartupMessages({
 })
 ```
 
-Load the preprocessed SingleCellExperiment object of 10x PBMC 3k.
+# Example data set
+
+First, load the preprocessed `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC)
 
 ```{r, }
 sce <- readRDS("pbmc3k_tutorial.sce.rds")
 sce
 ```
 
-Define the signatures used in the tutorial.
+# Gene signatures
+
+Declare the predefined gene signatures used in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html)
 
 ```{r}
 gsc <- GeneSetCollection(list(
@@ -47,29 +51,37 @@ gsc <- GeneSetCollection(list(
 gsc
 ```
 
-The `GeneSetCollection` can immediately be supplied to a `predict` S3 method, in combination with the `SummarizedExperiment` object to annotate.
+# Applying signatures to a data set
+
+## The `predict` method
+
+The `r Biocpkg("GSEABase")` `GeneSetCollection` object can immediately be supplied to the `predict` S3 method, in combination with the `r Biocpkg("SummarizedExperiment")` object to annotate.
 
 ```{r}
 sce <- predict(gsc, sce, method="ProportionPositive", cluster.col="ident")
 ```
 
-The `SummarizedExperiment` object is returned with a number of additional metadata.
+## Prediction outputs
 
-Most users will be interested in the cell identity annotated to each cell in the object.
+The updated `r Biocpkg("SummarizedExperiment")` object is returned, with a number of additional metadata.
+
+The key output is the cell identity predicted for each cell in the object.
 This information is stored in `colData(sce)[["hancock"]][["prediction"]]`, or `sce$hancock$prediction`, in short.
 
 ```{r}
 table(sce$hancock$prediction)
 ```
 
-With `method="ProportionPositive"`, all cells in each of the cluster supplied were annotated with the predominant signature in the cluster.
-Here is one way to visualize the assignment of cell identities to each cluster.
+With `method="ProportionPositive"`, all cells in each cluster were annotated with the predominant signature in their corresponding cluster.
+As such, the cell type prediction may be tabulated against the cluster membership of each cell.
 
 ```{r}
 table(sce$hancock$prediction, sce$ident)
 ```
 
-In addition to the final predictions, the updated `SummarizedExperiment` object also contain some additional information tracing to the process of prediction.
+This can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.
+
+In addition to the final predictions, the updated `r Biocpkg("SummarizedExperiment")` object also contain some additional information tracing to the process of prediction.
 That information can be found in `metadata(sce)[["hancock"]]`.
 
 ```{r}
@@ -78,7 +90,7 @@ names(metadata(sce)[["hancock"]])
 
 In particular:
 
-- `GeneSetCollection` stores the `GeneSetCollection` object used to make the predictions
+- `GeneSets` stores the `GeneSetCollection` object used to make the predictions
 - `method` stores the name of the method used to make the predictions
 - `packageVersion` stores the version of the `hancock` package used to make the predictions
 - `ProportionPositiveByCluster` stores the matrix indicating the proportion of cells in each cluster that are positive for each signature (i.e., `GeneSet`) in `GeneSetCollection`
@@ -88,28 +100,27 @@ In particular:
 metadata(sce)[["hancock"]][["TopSignatureByCluster"]]
 ```
 
-Visualize the result as a heat map.
+# Visualizing predictions
+
+## Heat map
+
+It is possible to visualize the result as a heat map.
 See how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.
 
 ```{r}
-ProportionPositiveByCluster <- metadata(sce)[["hancock"]][["ProportionPositiveByCluster"]]
-sceGSC <- metadata(sce)[["hancock"]][["GeneSetCollection"]]
-colnames(ProportionPositiveByCluster) <- paste(
-    colnames(ProportionPositiveByCluster),
-    sprintf("(%s)", lapply(sceGSC, function(x){paste(geneIds(x), collapse=", ")})),
-    sep="\n"
-)
-Heatmap(matrix=t(ProportionPositiveByCluster), cluster_rows=FALSE, cluster_columns=FALSE)
+plotProportionPositive(sce, cluster_rows=FALSE, cluster_columns=FALSE)
 ```
 
-Let signatures and clusters of cells cluster in the heat map.
-Unsurprisingly, the clusters annotated as "CD14+ Monocytes" and "FCGR3A+ Monocytes" show some similarity, as do the clusters annotated as "CD4 T cells" and "CD8 T cells".
+We can also let signatures and clusters of cells cluster in the heat map.
+Not surprisingly, the clusters annotated as "CD14+ Monocytes" and "FCGR3A+ Monocytes" show some similarity, as do the clusters annotated as "CD4 T cells" and "CD8 T cells".
 
 ```{r}
-Heatmap(matrix=t(ProportionPositiveByCluster))
+plotProportionPositive(sce)
 ```
 
-Display the expression of each marker on t-SNE result.
+## Reduced dimension
+
+We can also display the expression of each marker on t-SNE result.
 
 ```{r, fig.height=10}
 ggList <- list()
@@ -131,3 +142,7 @@ for (markerName in unique(unlist(geneIds(gsc)))) {
 }
 cowplot::plot_grid(plotlist = ggList)
 ```
+
+# See also
+
+- [Learning Gene Signatures from the Seurat PBMC 3k Tutorial](2-learn-signatures.html)

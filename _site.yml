@@ -1,0 +1,17 @@
+name: "hancock2018"
+output_dir: "docs"
+navbar:
+  title: "hancock 2018"
+  left:
+    - text: "Home"
+      href: "index.html"
+    - text: Seurat PBMC 3k
+      menu:
+      - text: "Data"
+        href: "0-Seurat_PBMC3k_tutorial_TENxPBMCData.html"
+      - text: "Predicting signatures"
+        href: "1-proportion_signature.html"
+      - text: "Learning signatures"
+        href: "2-learn-signatures.html"
+    - text: "About"
+      href: "about.html"

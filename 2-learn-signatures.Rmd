@@ -1,17 +1,18 @@
 ---
-title: "Learn Signatures from the PBMC 3k data set"
+title: "Learning Gene Signatures from the Seurat PBMC 3k Tutorial"
 author: "Kevin Rue-Albrecht"
 date: "19/12/2018"
 output:
   html_document:
     code_folding: hide
+output_dir: docs
 editor_options: 
   chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(hancock)
@@ -22,15 +23,19 @@ suppressPackageStartupMessages({
 })
 ```
 
-Load the preprocessed SingleCellExperiment object of 10x PBMC 3k.
+# Example data set
+
+First, we load the preprocessed SingleCellExperiment object of 10x PBMC 3k.
 
 ```{r, }
 sce <- readRDS("pbmc3k_tutorial.sce.rds")
 sce
 ```
 
-According to the tutorial, cluster 0 comprises CD4 T cells marked by the expression of IL7R.
-When applying the IL7R signature, we have shown that indeed IL7R is expressed at a relatively high frequency in cluster 0 and much less frequently detected in all other clusters.
+# Learning signatures from a data set
+
+According to the tutorial, cluster "0" comprises CD4 T cells marked by the expression of the gene _IL7R_.
+When applying the _IL7R_ signature, we have shown that indeed _IL7R_ is expressed at a relatively high frequency in cluster "0" and much less frequently detected in all other clusters.
 
 Now, let us programmatically identify the top 2 markers for each cluster by asking the question:
 "Which genes are detected in the target cluster at a frequency at least 20% higher than any other cluster"?
@@ -59,6 +64,10 @@ seuratTutorialMarkers <- tbl_geneset(
 seuratTutorialMarkers
 ```
 
+# Visualizing signatures
+
+## Reduced dimension
+
 Let us visualize the top 2 markers for each cluster.
 The cell type identity associated with markers mentioned in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) is indicated in each panel subtitle. 
 
@@ -85,6 +94,8 @@ for (markerName in tgs$gene) {
 cowplot::plot_grid(plotlist = ggList)
 ```
 
+## Interactively
+
 It is possible to interactively set the names of each gene signature learned using an interactive _Shiny_ app.
 For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `tbl_geneset` object) and the annotated `SingleCellExperiment` to the interactive app.
 
@@ -99,6 +110,8 @@ if (interactive()){
 ```
 
 Note how the returned `tgs` object contains any update you may have done to the names of the gene sets interactively within the app.
+
+## Proportion of cells predicted for each signature
 
 One may also visualize the proportion of cells positive for each signature in each cluster.
 If you renamed any signature in the previous chunk, the `predict` method may be run again to apply the new labels to the `SingleCellExperiment` object.
@@ -138,3 +151,7 @@ ggplot(scree0, aes(markers, proportion)) +
     theme(panel.grid.major=element_line(color="grey90", size=0.5)) +
     labs(x="Number of top markers", y="Proportion positive for all markers")
 ```
+
+# See also
+
+- [Applying Gene Signatures to the Seurat PBMC 3k Tutorial](1-proportion_signature.html)

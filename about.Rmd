@@ -1,0 +1,25 @@
+---
+title: "About This Project"
+author: "Kevin Rue-Albrecht"
+date: "`r BiocStyle::doc_date()`"
+output:
+  html_document:
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+stopifnot({
+    require(BiocStyle)
+})
+```
+
+More information about the `r Githubpkg("kevinrue/hancock")` package.
+
+# Citation
+
+```{r}
+citation("hancock")
+```
+

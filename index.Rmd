@@ -1,0 +1,16 @@
+---
+title: "Welcome"
+author: "Kevin Rue-Albrecht"
+date: "`r BiocStyle::doc_date()`"
+output:
+  html_document:
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+This website provides a collection of notebooks that demonstrate usage of the hancock package.
+
+# Data sets
+
+- [Seurat PBMC 3k](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html)

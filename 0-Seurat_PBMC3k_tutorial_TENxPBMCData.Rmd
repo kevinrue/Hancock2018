@@ -1,7 +1,7 @@
 ---
 title: "Seurat PBMC 3k tutorial using TENxPBMCData"
 author: "Kevin Rue-Albrecht"
-date: "27/11/2018"
+date: "`r BiocStyle::doc_date()`"
 output:
   html_document:
     code_folding: hide
@@ -11,11 +11,20 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
+stopifnot({
+    require(BiocStyle)
+})
 ```
 
-Fetch the SingleCellExperiment object using the `TENxPBMCData`.
-The first time download from the web and cache locally; subsequently from the local cache.
+# Overview
+
+In this example, we use count data for 2,700 peripheral blood mononuclear cells (PBMC) obtained using the [10X Genomics](www.10xgenomics.com) platform, and process it following the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) of the `r CRANpkg("Seurat")` package.
+
+# Getting the data
+
+First, we fetch the data as a `r Biocpkg("SingleCellExperiment")` object using the `r Biocpkg("TENxPBMCData")` package.
+The first time the following code chunk is run may take longer, as the data is downloaded from the web and cached locally; subsequent evaluations of the code chunk should only take a few seconds as the data set is then loaded from the local cache.
 
 ```{r}
 library(TENxPBMCData)
@@ -23,7 +32,9 @@ tenx_pbmc3k <- TENxPBMCData(dataset="pbmc3k")
 tenx_pbmc3k
 ```
 
-Prepare a sparse matrix that emulates the first section of the tutorial.
+# Preparing the data
+
+Next, we prepare a sparse matrix that emulates the first section of the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
 
 ```{r}
 library(Matrix)
@@ -33,7 +44,9 @@ colnames(pbmc.data) <- paste0("Cell", seq_len(ncol(pbmc.data)))
 rownames(pbmc.data) <- make.unique(rowData(tenx_pbmc3k)[, "Symbol_TENx", drop=TRUE])
 ```
 
-From here on, follow the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) to the letter (code copied from https://satijalab.org/seurat/pbmc3k_tutorial.html on 2018-11-24).
+# Seurat - Guided Clustering Tutorial
+
+From here on, follow the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) to the letter (code obtained on 2018-11-24).
 
 ```{r}
 library(Seurat)
@@ -200,3 +213,8 @@ Note that the marker genes used to later assign cell identities to the various c
 # 6	            FCER1A, CST3	Dendritic Cells
 # 7	            PPBP	        Megakaryocytes
 ```
+
+# Next
+
+- [Applying Gene Signatures to the Seurat PBMC 3k Tutorial](1-proportion_signature.html)
+- [Learning Gene Signatures from the Seurat PBMC 3k Tutorial](2-learn-signatures.html)

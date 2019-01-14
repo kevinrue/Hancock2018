@@ -1,5 +1,14 @@
 name: "hancock"
 output_dir: "docs"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_float: true
+    includes:
+      in_header: "www/scroll.html"
+editor_options:
+  chunk_output_type: console
 navbar:
   title: "hancock"
   left:

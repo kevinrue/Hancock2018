@@ -7,12 +7,24 @@ output:
     code_folding: show
     toc: true
     toc_float: true
+    includes:
+      in_header: "www/scroll.html"
 editor_options: 
   chunk_output_type: console
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(cache=FALSE)
+stopifnot({
+    require(BiocStyle)
+})
+```
 
 This website provides a collection of notebooks that demonstrate usage of the `r Githubpkg("kevinrue/hancock")` package.
 
 # Data sets
 
 - [Seurat PBMC 3k](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html)
+
+<button onclick="topFunction()" id="myBtn" title="Go to top">Back to top</button>

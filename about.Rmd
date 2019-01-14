@@ -7,11 +7,15 @@ output:
     code_folding: show
     toc: true
     toc_float: true
+    includes:
+      in_header: "www/scroll.html"
 editor_options: 
   chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(cache=FALSE)
 stopifnot({
     require(BiocStyle)
 })
@@ -30,3 +34,5 @@ citation("hancock")
 - [Source code](https://github.com/kevinrue/hancock2018) for this website.
 - [GitHub Pages](https://pages.github.com).
 - [rmarkdown’s site generator](https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html).
+
+<button onclick="topFunction()" id="myBtn" title="Go to top">Back to top</button>

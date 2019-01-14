@@ -7,6 +7,8 @@ output:
     code_folding: show
     toc: true
     toc_float: true
+    includes:
+      in_header: "www/scroll.html"
 output_dir: docs
 editor_options: 
   chunk_output_type: console
@@ -157,3 +159,5 @@ ggplot(scree0, aes(markers, proportion)) +
 # See also
 
 - [Applying Gene Signatures to the Seurat PBMC 3k Tutorial](1-proportion_signature.html)
+
+<button onclick="topFunction()" id="myBtn" title="Go to top">Back to top</button>

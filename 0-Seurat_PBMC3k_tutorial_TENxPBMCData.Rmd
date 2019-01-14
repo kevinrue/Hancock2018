@@ -4,7 +4,9 @@ author: "Kevin Rue-Albrecht"
 date: "`r BiocStyle::doc_date()`"
 output:
   html_document:
-    code_folding: hide
+    code_folding: show
+    toc: true
+    toc_float: true
 editor_options: 
   chunk_output_type: console
 ---
@@ -214,7 +216,7 @@ Note that the marker genes used to later assign cell identities to the various c
 # 7	            PPBP	        Megakaryocytes
 ```
 
-# Next
+# See also
 
 - [Applying Gene Signatures to the Seurat PBMC 3k Tutorial](1-proportion_signature.html)
 - [Learning Gene Signatures from the Seurat PBMC 3k Tutorial](2-learn-signatures.html)

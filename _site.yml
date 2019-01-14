@@ -1,7 +1,7 @@
-name: "hancock2018"
+name: "hancock"
 output_dir: "docs"
 navbar:
-  title: "hancock 2018"
+  title: "hancock"
   left:
     - text: "Home"
       href: "index.html"

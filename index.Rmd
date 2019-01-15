@@ -14,6 +14,16 @@ stopifnot({
 
 This website provides a collection of notebooks that demonstrate usage of the `r Githubpkg("kevinrue/hancock")` package.
 
+# Installation
+
+The following commands install the package and some dependencies only available from [GitHub](https://github.com).
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+install.packages("devtools")
+devtools::install_github("Kayla-Morrell/GeneSet", "tibble_implement")
+devtools::install_github("kevinrue/hancock")
+```
+
 # Data sets
 
 - [Seurat PBMC 3k](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html)

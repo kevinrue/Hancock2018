@@ -560,7 +560,7 @@ for (markerName in unique(unlist(elementIds(basesets)))) {
         reducedDim(sce, &quot;TSNE&quot;),
         logcounts=assay(sce, &quot;logcounts&quot;)[markerName, ]
     )
-    cellIdentity &lt;- names(which(sapply(elementIds(basesets), function(x){markerName %in% x})))
+    cellIdentity &lt;- subset(as.data.frame(basesets), element == markerName, &quot;set&quot;, drop=TRUE)
     gg &lt;- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +

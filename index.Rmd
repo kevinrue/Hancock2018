@@ -20,7 +20,7 @@ The following commands install the package and some dependencies only available 
 
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
 install.packages("devtools")
-devtools::install_github("Kayla-Morrell/GeneSet", "tibble_implement")
+devtools::install_github("Kayla-Morrell/GeneSet")
 devtools::install_github("kevinrue/hancock")
 ```
 

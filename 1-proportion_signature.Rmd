@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
-    library(GSEABase)
+    library(unisets)
     library(hancock)
     library(S4Vectors)
     library(knitr)
@@ -33,17 +33,18 @@ sce
 Declare the predefined gene signatures used in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html)
 
 ```{r}
-gsc <- GeneSetCollection(list(
-    GeneSet(setName="CD4 T cells", c("IL7R")),
-    GeneSet(setName="CD14+ Monocytes", c("CD14", "LYZ")),
-    GeneSet(setName="B cells", c("MS4A1")),
-    GeneSet(setName="CD8 T cells", c("CD8A")),
-    GeneSet(setName="FCGR3A+ Monocytes", c("FCGR3A", "MS4A7")),
-    GeneSet(setName="NK cells", c("GNLY", "NKG7")),
-    GeneSet(setName="Dendritic Cells", c("FCER1A", "CST3")),
-    GeneSet(setName="Megakaryocytes", c("PPBP"))
-))
-gsc
+geneLists <- list(
+    "CD4 T cells"=c("IL7R"),
+    "CD14+ Monocytes"=c("CD14", "LYZ"),
+    "B cells"=c("MS4A1"),
+    "CD8 T cells"=c("CD8A"),
+    "FCGR3A+ Monocytes"=c("FCGR3A", "MS4A7"),
+    "NK cells"=c("GNLY", "NKG7"),
+    "Dendritic Cells"=c("FCER1A", "CST3"),
+    "Megakaryocytes"=c("PPBP")
+)
+basesets <- as(geneLists, "BaseSets")
+basesets
 ```
 
 # Applying signatures to a data set
@@ -53,7 +54,7 @@ gsc
 The `r Biocpkg("GSEABase")` `GeneSetCollection` object can immediately be supplied to the `predict` S3 method, in combination with the `r Biocpkg("SummarizedExperiment")` object to annotate.
 
 ```{r}
-sce <- predict(gsc, sce, method="ProportionPositive", cluster.col="ident")
+sce <- predict(basesets, sce, method="ProportionPositive", cluster.col="ident")
 ```
 
 ## Prediction outputs
@@ -119,12 +120,12 @@ We can also display the expression of each marker on t-SNE result.
 
 ```{r, fig.height=10}
 ggList <- list()
-for (markerName in unique(unlist(geneIds(gsc)))) {
+for (markerName in unique(unlist(elementIds(basesets)))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
         logcounts=assay(sce, "logcounts")[markerName, ]
     )
-    cellIdentity <- names(which(sapply(geneIds(gsc), function(x){markerName %in% x})))
+    cellIdentity <- names(which(sapply(elementIds(basesets), function(x){markerName %in% x})))
     gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +

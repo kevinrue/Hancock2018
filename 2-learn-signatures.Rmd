@@ -10,7 +10,7 @@ knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(hancock)
-    library(GeneSet)
+    library(unisets)
     library(ggplot2)
     library(cowplot)
     library(shiny)
@@ -35,17 +35,17 @@ Now, let us programmatically identify the top 2 markers for each cluster by aski
 "Which genes are detected in the target cluster at a frequency at least 20% higher than any other cluster"?
 
 ```{r}
-tgs <- learnSignatures(
+basesets <- learnSignatures(
     sce, method = "PositiveProportionDifference",
     cluster.col="ident", assay.type = "counts", threshold = 0, n = 2, min.diff = 0.2)
-knitr::kable(tgs)
+knitr::kable(basesets)
 ```
 
 Note that the table above does highlight some of the markers suggested in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) (listed below).
 Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).
 
 ```{r}
-seuratTutorialMarkers <- tbl_geneset(
+seuratTutorialMarkers <- list(
     "CD4 T cells"=c("IL7R"),
     "CD14+ Monocytes"=c("CD14", "LYZ"),
     "B cells"=c("MS4A1"),
@@ -55,6 +55,7 @@ seuratTutorialMarkers <- tbl_geneset(
     "Dendritic Cells"=c("FCER1A", "CST3"),
     "Megakaryocytes"=c("PPBP")
 )
+seuratTutorialMarkers <- as(seuratTutorialMarkers, "BaseSets")
 seuratTutorialMarkers
 ```
 
@@ -67,12 +68,12 @@ The cell type identity associated with markers mentioned in the [Seurat tutorial
 
 ```{r, fig.height=12, fig.width=8}
 ggList <- list()
-for (markerName in tgs$gene) {
+for (markerName in elementIds(basesets)) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
         logcounts=assay(sce, "logcounts")[markerName, ]
     )
-    seuratIdentity <- as.character(subset(seuratTutorialMarkers, gene == markerName, "set", drop=TRUE))
+    seuratIdentity <- subset(as(seuratTutorialMarkers, "data.frame"), element == markerName, "set", drop=TRUE)
     if (length(seuratIdentity) == 0) { seuratIdentity <- " "} # trick to make equal plot dimensions
     gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
         geom_point(size=0.1) +
@@ -94,16 +95,16 @@ It is possible to interactively set the names of each gene signature learned usi
 For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `tbl_geneset` object) and the annotated `SingleCellExperiment` to the interactive app.
 
 ```{r}
-tgs <- learnSignatures(
+basesets <- learnSignatures(
     sce, method = "PositiveProportionDifference",
     cluster.col="ident", assay.type = "counts", threshold = 0, n = Inf, min.diff = 0.2)
-scePred <- predict(tgs, sce, method="ProportionPositive", cluster.col="ident")
+scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="ident")
 if (interactive()){
-    tgs <- runApp(shinyLabels(tgs, scePred))
+    basesets <- runApp(shinyLabels(basesets, scePred))
 }
 ```
 
-Note how the returned `tgs` object contains any update you may have done to the names of the gene sets interactively within the app.
+Note how the returned `basesets` object contains any update you may have done to the names of the gene sets interactively within the app.
 
 ## Proportion of cells predicted for each signature
 
@@ -111,7 +112,7 @@ One may also visualize the proportion of cells positive for each signature in ea
 If you renamed any signature in the previous chunk, the `predict` method may be run again to apply the new labels to the `SingleCellExperiment` object.
 
 ```{r}
-scePred <- predict(tgs, sce, method="ProportionPositive", cluster.col="ident")
+scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="ident")
 plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)
 ```
 

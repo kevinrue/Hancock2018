@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-01-15" />
+<meta name="date" content="2019-02-03" />
 
 <title>Applying Gene Signatures to the Seurat PBMC 3k Tutorial</title>
 
@@ -437,7 +437,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>15 January 2019</em></h4>
+<h4 class="date"><em>3 February 2019</em></h4>
 
 </div>
 
@@ -462,42 +462,51 @@ sce</code></pre>
 <div id="gene-signatures" class="section level1">
 <h1>Gene signatures</h1>
 <p>Declare the predefined gene signatures used in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat - Guided Clustering Tutorial</a></p>
-<pre class="r"><code>gsc &lt;- GeneSetCollection(list(
-    GeneSet(setName=&quot;CD4 T cells&quot;, c(&quot;IL7R&quot;)),
-    GeneSet(setName=&quot;CD14+ Monocytes&quot;, c(&quot;CD14&quot;, &quot;LYZ&quot;)),
-    GeneSet(setName=&quot;B cells&quot;, c(&quot;MS4A1&quot;)),
-    GeneSet(setName=&quot;CD8 T cells&quot;, c(&quot;CD8A&quot;)),
-    GeneSet(setName=&quot;FCGR3A+ Monocytes&quot;, c(&quot;FCGR3A&quot;, &quot;MS4A7&quot;)),
-    GeneSet(setName=&quot;NK cells&quot;, c(&quot;GNLY&quot;, &quot;NKG7&quot;)),
-    GeneSet(setName=&quot;Dendritic Cells&quot;, c(&quot;FCER1A&quot;, &quot;CST3&quot;)),
-    GeneSet(setName=&quot;Megakaryocytes&quot;, c(&quot;PPBP&quot;))
-))
-gsc</code></pre>
-<pre><code>## GeneSetCollection
-##   names: CD4 T cells, CD14+ Monocytes, ..., Megakaryocytes (8 total)
-##   unique identifiers: IL7R, CD14, ..., PPBP (12 total)
-##   types in collection:
-##     geneIdType: NullIdentifier (1 total)
-##     collectionType: NullCollection (1 total)</code></pre>
+<pre class="r"><code>geneLists &lt;- list(
+    &quot;CD4 T cells&quot;=c(&quot;IL7R&quot;),
+    &quot;CD14+ Monocytes&quot;=c(&quot;CD14&quot;, &quot;LYZ&quot;),
+    &quot;B cells&quot;=c(&quot;MS4A1&quot;),
+    &quot;CD8 T cells&quot;=c(&quot;CD8A&quot;),
+    &quot;FCGR3A+ Monocytes&quot;=c(&quot;FCGR3A&quot;, &quot;MS4A7&quot;),
+    &quot;NK cells&quot;=c(&quot;GNLY&quot;, &quot;NKG7&quot;),
+    &quot;Dendritic Cells&quot;=c(&quot;FCER1A&quot;, &quot;CST3&quot;),
+    &quot;Megakaryocytes&quot;=c(&quot;PPBP&quot;)
+)
+basesets &lt;- as(geneLists, &quot;BaseSets&quot;)
+basesets</code></pre>
+<pre><code>## BaseSets with 12 relations between 12 elements and 8 sets
+##      element             set relationData elementData     setData
+##   &lt;IdVector&gt;      &lt;IdVector&gt;  &lt;DataFrame&gt; &lt;DataFrame&gt; &lt;DataFrame&gt;
+## 1       IL7R     CD4 T cells                                     
+## 2       CD14 CD14+ Monocytes                                     
+## 3        LYZ CD14+ Monocytes                                     
+## 4      MS4A1         B cells                                     
+## 5       CD8A     CD8 T cells                                     
+##          ...             ...          ...         ...         ...
+## 1       GNLY        NK cells                                     
+## 2       NKG7        NK cells                                     
+## 3     FCER1A Dendritic Cells                                     
+## 4       CST3 Dendritic Cells                                     
+## 5       PPBP  Megakaryocytes</code></pre>
 </div>
 <div id="applying-signatures-to-a-data-set" class="section level1">
 <h1>Applying signatures to a data set</h1>
 <div id="the-predict-method" class="section level2">
 <h2>The <code>predict</code> method</h2>
 <p>The <em><a href="https://bioconductor.org/packages/3.9/GSEABase">GSEABase</a></em> <code>GeneSetCollection</code> object can immediately be supplied to the <code>predict</code> S3 method, in combination with the <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object to annotate.</p>
-<pre class="r"><code>sce &lt;- predict(gsc, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)</code></pre>
+<pre class="r"><code>sce &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)</code></pre>
 </div>
 <div id="prediction-outputs" class="section level2">
 <h2>Prediction outputs</h2>
 <p>The updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object is returned, with a number of additional metadata.</p>
-<p>The key output is the cell identity predicted for each cell in the object. This information is stored in <code>colData(sce)[[&quot;hancock&quot;]][[&quot;prediction&quot;]]</code>, or <code>sce$hancock$prediction</code>, in short.</p>
+<p>The key output is the cell identity predicted for each cell in the object. This information is stored in <code>colData(sce)[["hancock"]][["prediction"]]</code>, or <code>sce$hancock$prediction</code>, in short.</p>
 <pre class="r"><code>table(sce$hancock$prediction)</code></pre>
 <pre><code>## 
 ##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
 ##              1151               479               342               308 
 ## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
 ##               157               155                32                14</code></pre>
-<p>With <code>method=&quot;ProportionPositive&quot;</code>, all cells in each cluster were annotated with the predominant signature in their corresponding cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell.</p>
+<p>With <code>method="ProportionPositive"</code>, all cells in each cluster were annotated with the predominant signature in their corresponding cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell.</p>
 <pre class="r"><code>table(sce$hancock$prediction, sce$ident)</code></pre>
 <pre><code>##                    
 ##                        0    1    2    3    4    5    6    7
@@ -510,7 +519,7 @@ gsc</code></pre>
 ##   Dendritic Cells      0    0    0    0    0    0   32    0
 ##   Megakaryocytes       0    0    0    0    0    0    0   14</code></pre>
 <p>This can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.</p>
-<p>In addition to the final predictions, the updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object also contain some additional information tracing to the process of prediction. That information can be found in <code>metadata(sce)[[&quot;hancock&quot;]]</code>.</p>
+<p>In addition to the final predictions, the updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object also contain some additional information tracing to the process of prediction. That information can be found in <code>metadata(sce)[["hancock"]]</code>.</p>
 <pre class="r"><code>names(metadata(sce)[[&quot;hancock&quot;]])</code></pre>
 <pre><code>## [1] &quot;GeneSets&quot;                    &quot;method&quot;                     
 ## [3] &quot;packageVersion&quot;              &quot;ProportionPositiveByCluster&quot;
@@ -546,12 +555,12 @@ gsc</code></pre>
 <h2>Reduced dimension</h2>
 <p>We can also display the expression of each marker on t-SNE result.</p>
 <pre class="r"><code>ggList &lt;- list()
-for (markerName in unique(unlist(geneIds(gsc)))) {
+for (markerName in unique(unlist(elementIds(basesets)))) {
     ggDataFrame &lt;- data.frame(
         reducedDim(sce, &quot;TSNE&quot;),
         logcounts=assay(sce, &quot;logcounts&quot;)[markerName, ]
     )
-    cellIdentity &lt;- names(which(sapply(geneIds(gsc), function(x){markerName %in% x})))
+    cellIdentity &lt;- names(which(sapply(elementIds(basesets), function(x){markerName %in% x})))
     gg &lt;- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +

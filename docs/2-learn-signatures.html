@@ -404,7 +404,7 @@ div.tocify {
       <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">Data</a>
     </li>
     <li>
-      <a href="1-proportion_signature.html">Predicting signatures</a>
+      <a href="1-proportion_signature.html">Applying signatures</a>
     </li>
     <li>
       <a href="2-learn-signatures.html">Learning signatures</a>
@@ -443,7 +443,7 @@ div.tocify {
 
 <div id="example-data-set" class="section level1">
 <h1>Example data set</h1>
-<p>First, we load the preprocessed SingleCellExperiment object of 10x PBMC 3k.</p>
+<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">here</a>.</p>
 <pre class="r"><code>sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
 sce</code></pre>
 <pre><code>## class: SingleCellExperiment 
@@ -460,11 +460,13 @@ sce</code></pre>
 </div>
 <div id="learning-signatures-from-a-data-set" class="section level1">
 <h1>Learning signatures from a data set</h1>
-<p>According to the tutorial, cluster “0” comprises CD4 T cells marked by the expression of the gene <em>IL7R</em>. When applying the <em>IL7R</em> signature, we have shown that indeed <em>IL7R</em> is expressed at a relatively high frequency in cluster “0” and much less frequently detected in all other clusters.</p>
-<p>Now, let us programmatically identify the top 2 markers for each cluster by asking the question: “Which genes are detected in the target cluster at a frequency at least 20% higher than any other cluster”?</p>
+<p>According to the tutorial, cluster “0” comprises CD4 T cells marked by the expression of the gene <em>IL7R</em>. When applying the <em>IL7R</em> signature, we <a href="1-proportion_signature.html">have shown</a> that indeed <em>IL7R</em> is expressed at a relatively high frequency in cluster “0” and much less frequently detected in all other clusters.</p>
+<p>Now, let us programmatically identify the top 2 markers for each cluster by asking the question: “Which genes are detected (non-zero count) in the target cluster at a frequency at least 20% higher than any other cluster”?</p>
+<p>In addition, the default behaviour of the function requires that–<em>together</em>–the genes that comprise each signature are co-detected in at least 10% of the target cluster (<code>min.prop=0.1</code>).</p>
 <pre class="r"><code>basesets &lt;- learnSignatures(
     sce, method = &quot;PositiveProportionDifference&quot;,
-    cluster.col=&quot;ident&quot;, assay.type = &quot;counts&quot;, threshold = 0, n = 2, min.diff = 0.2)
+    cluster.col=&quot;ident&quot;, assay.type = &quot;counts&quot;, threshold = 0, n = 2, min.diff = 0.2,
+    diff.method = &quot;min&quot;, min.prop = 0.1)
 knitr::kable(basesets)</code></pre>
 <table>
 <thead>
@@ -574,7 +576,7 @@ knitr::kable(basesets)</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Note that the table above does highlight some of the markers suggested in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat tutorial</a> (listed below). Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).</p>
+<p>Note that the table above does include some of the markers suggested in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat tutorial</a> (listed below). Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).</p>
 <pre class="r"><code>seuratTutorialMarkers &lt;- list(
     &quot;CD4 T cells&quot;=c(&quot;IL7R&quot;),
     &quot;CD14+ Monocytes&quot;=c(&quot;CD14&quot;, &quot;LYZ&quot;),
@@ -606,7 +608,8 @@ seuratTutorialMarkers</code></pre>
 <h1>Visualizing signatures</h1>
 <div id="reduced-dimension" class="section level2">
 <h2>Reduced dimension</h2>
-<p>Let us visualize the top 2 markers for each cluster. The cell type identity associated with markers mentioned in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat tutorial</a> is indicated in each panel subtitle.</p>
+<p>Let us visualize the top 2 markers identified in this way for each cluster.</p>
+<p>For reference, the cell type identity associated with markers mentioned in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat tutorial</a> is indicated in each panel subtitle, where applicable.</p>
 <pre class="r"><code>ggList &lt;- list()
 for (markerName in elementIds(basesets)) {
     ggDataFrame &lt;- data.frame(
@@ -631,7 +634,7 @@ cowplot::plot_grid(plotlist = ggList)</code></pre>
 </div>
 <div id="interactively" class="section level2">
 <h2>Interactively</h2>
-<p>It is possible to interactively set the names of each gene signature learned using an interactive <em>Shiny</em> app. For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a <code>tbl_geneset</code> object) and the annotated <code>SingleCellExperiment</code> to the interactive app.</p>
+<p>It is possible to interactively set the names of each gene signature learned using an interactive <em>Shiny</em> app. For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a <code>BaseSets</code> object) and the annotated <code>SingleCellExperiment</code> to the interactive app.</p>
 <pre class="r"><code>basesets &lt;- learnSignatures(
     sce, method = &quot;PositiveProportionDifference&quot;,
     cluster.col=&quot;ident&quot;, assay.type = &quot;counts&quot;, threshold = 0, n = Inf, min.diff = 0.2)
@@ -643,7 +646,7 @@ if (interactive()){
 </div>
 <div id="proportion-of-cells-predicted-for-each-signature" class="section level2">
 <h2>Proportion of cells predicted for each signature</h2>
-<p>One may also visualize the proportion of cells positive for each signature in each cluster. If you renamed any signature in the previous chunk, the <code>predict</code> method may be run again to apply the new labels to the <code>SingleCellExperiment</code> object.</p>
+<p>One may also visualize the proportion of cells positive for each signature in each cluster. If you renamed any signature in the previous chunk, the <code>predict</code> method should be run again to apply the new labels to the <code>SingleCellExperiment</code> object.</p>
 <pre class="r"><code>scePred &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)
 plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)</code></pre>
 <p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
@@ -653,8 +656,8 @@ plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)</code
 <h1>Concepts</h1>
 <div id="scree-detection-plot" class="section level2">
 <h2>Scree detection plot</h2>
-<p>The learning method <code>"PositiveProportionDifference"</code> allows the trimming of candidate markers to those that are <em>simultaneously</em> detected in a minimal proportion of samples in the target cluster. For the purpose of defining qualitative gene signatures, it can be useful to ensure that all of the combined gene set that makes up a signature is fully detected in a minimal proportion of samples.</p>
-<p>To illustrate this process, the code chunk below computes and displays the proportion of cells in cluster <code>"0"</code> in which the N most frequently detected markers are simultaneously detected. The figure displays the proportion of samples with detectable expression of the most frequently detected gene, the two most frequently detected genes (simultaneously), etc.</p>
+<p>The learning method <code>"PositiveProportionDifference"</code> allows the trimming of candidate markers to those that are co-detected in a minimal proportion of samples in the target cluster. The trimming process starts from the most frequently detected marker and stop when the frequency of co-detection drops below the required minimal proportion; all candidate markers beyond this point are dropped. The motivation here is that for the purpose of defining qualitative gene signatures, it is useful to ensure that all of the combined gene set that makes up a signature is fully detected in a minimal proportion of samples.</p>
+<p>To illustrate this process, the code chunk below computes and displays the proportion of cells in cluster <code>"0"</code> in which the <em>N</em> most frequently detected markers are co-detected. Specifically, the figure displays the proportion of samples with detectable expression of the most frequently detected gene, the two most frequently detected genes (simultaneously), etc.</p>
 <pre class="r"><code># Choose a cluster for this example
 cluster0 &lt;- &quot;0&quot;
 topMarkers &lt;- 100

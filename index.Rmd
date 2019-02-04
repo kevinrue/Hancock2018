@@ -16,7 +16,7 @@ This website provides a collection of notebooks that demonstrate usage of the `r
 
 # Installation
 
-The following commands install the package and some dependencies only available from [GitHub](https://github.com).
+The following commands install the `hancock` package and some dependencies only available from [GitHub](https://github.com).
 
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
 install.packages("devtools")

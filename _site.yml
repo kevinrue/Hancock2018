@@ -18,7 +18,7 @@ navbar:
       menu:
       - text: "Data"
         href: "0-Seurat_PBMC3k_tutorial_TENxPBMCData.html"
-      - text: "Predicting signatures"
+      - text: "Applying signatures"
         href: "1-proportion_signature.html"
       - text: "Learning signatures"
         href: "2-learn-signatures.html"

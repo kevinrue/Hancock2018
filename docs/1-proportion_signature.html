@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-03" />
+<meta name="date" content="2019-02-04" />
 
 <title>Applying Gene Signatures to the Seurat PBMC 3k Tutorial</title>
 
@@ -405,7 +405,7 @@ div.tocify {
       <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">Data</a>
     </li>
     <li>
-      <a href="1-proportion_signature.html">Predicting signatures</a>
+      <a href="1-proportion_signature.html">Applying signatures</a>
     </li>
     <li>
       <a href="2-learn-signatures.html">Learning signatures</a>
@@ -437,14 +437,14 @@ div.tocify {
 
 <h1 class="title toc-ignore">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>3 February 2019</em></h4>
+<h4 class="date"><em>4 February 2019</em></h4>
 
 </div>
 
 
 <div id="example-data-set" class="section level1">
 <h1>Example data set</h1>
-<p>First, load the preprocessed <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC)</p>
+<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">here</a>.</p>
 <pre class="r"><code>sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
 sce</code></pre>
 <pre><code>## class: SingleCellExperiment 
@@ -493,7 +493,7 @@ basesets</code></pre>
 <h1>Applying signatures to a data set</h1>
 <div id="the-predict-method" class="section level2">
 <h2>The <code>predict</code> method</h2>
-<p>The <em><a href="https://bioconductor.org/packages/3.9/GSEABase">GSEABase</a></em> <code>GeneSetCollection</code> object can immediately be supplied to the <code>predict</code> S3 method, in combination with the <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object to annotate.</p>
+<p>The <em><a href="https://github.com/kevinrue/unisets">unisets</a></em> <code>BaseSets</code> object can immediately be supplied to the <code>predict</code> S3 method, in combination with the <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object to annotate.</p>
 <pre class="r"><code>sce &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)</code></pre>
 </div>
 <div id="prediction-outputs" class="section level2">
@@ -502,23 +502,23 @@ basesets</code></pre>
 <p>The key output is the cell identity predicted for each cell in the object. This information is stored in <code>colData(sce)[["hancock"]][["prediction"]]</code>, or <code>sce$hancock$prediction</code>, in short.</p>
 <pre class="r"><code>table(sce$hancock$prediction)</code></pre>
 <pre><code>## 
-##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
-##              1151               479               342               308 
-## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
-##               157               155                32                14</code></pre>
-<p>With <code>method="ProportionPositive"</code>, all cells in each cluster were annotated with the predominant signature in their corresponding cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell.</p>
+##           B cells   CD14+ Monocytes       CD4 T cells       CD8 T cells 
+##               342               479              1151               308 
+##   Dendritic Cells FCGR3A+ Monocytes    Megakaryocytes          NK cells 
+##                32               157                14               155</code></pre>
+<p>With <code>method="ProportionPositive"</code>, all cells in each cluster are annotated with the predominant signature in their associated cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell.</p>
 <pre class="r"><code>table(sce$hancock$prediction, sce$ident)</code></pre>
 <pre><code>##                    
 ##                        0    1    2    3    4    5    6    7
-##   CD4 T cells       1151    0    0    0    0    0    0    0
-##   CD14+ Monocytes      0  479    0    0    0    0    0    0
 ##   B cells              0    0  342    0    0    0    0    0
+##   CD14+ Monocytes      0  479    0    0    0    0    0    0
+##   CD4 T cells       1151    0    0    0    0    0    0    0
 ##   CD8 T cells          0    0    0  308    0    0    0    0
-##   FCGR3A+ Monocytes    0    0    0    0  157    0    0    0
-##   NK cells             0    0    0    0    0  155    0    0
 ##   Dendritic Cells      0    0    0    0    0    0   32    0
-##   Megakaryocytes       0    0    0    0    0    0    0   14</code></pre>
-<p>This can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.</p>
+##   FCGR3A+ Monocytes    0    0    0    0  157    0    0    0
+##   Megakaryocytes       0    0    0    0    0    0    0   14
+##   NK cells             0    0    0    0    0  155    0    0</code></pre>
+<p>This view can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.</p>
 <p>In addition to the final predictions, the updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object also contain some additional information tracing to the process of prediction. That information can be found in <code>metadata(sce)[["hancock"]]</code>.</p>
 <pre class="r"><code>names(metadata(sce)[[&quot;hancock&quot;]])</code></pre>
 <pre><code>## [1] &quot;GeneSets&quot;                    &quot;method&quot;                     
@@ -526,10 +526,13 @@ basesets</code></pre>
 ## [5] &quot;TopSignatureByCluster&quot;</code></pre>
 <p>In particular:</p>
 <ul>
-<li><code>GeneSets</code> stores the <code>GeneSetCollection</code> object used to make the predictions</li>
+<li><code>GeneSets</code> stores the object that provided the gene set signatures used for the prediction</li>
 <li><code>method</code> stores the name of the method used to make the predictions</li>
 <li><code>packageVersion</code> stores the version of the <code>hancock</code> package used to make the predictions</li>
-<li><code>ProportionPositiveByCluster</code> stores the matrix indicating the proportion of cells in each cluster that are positive for each signature (i.e., <code>GeneSet</code>) in <code>GeneSetCollection</code></li>
+</ul>
+<p>Specifically, <code>method="ProportionPositive"</code> adds the following metadata items:</p>
+<ul>
+<li><code>ProportionPositiveByCluster</code> stores the matrix indicating the proportion of cells in each cluster that are positive for each signature</li>
 <li><code>TopSignatureByCluster</code> stores a named vector that indicates the predominant signature for each cluster. It is shown below.</li>
 </ul>
 <pre class="r"><code>metadata(sce)[[&quot;hancock&quot;]][[&quot;TopSignatureByCluster&quot;]]</code></pre>
@@ -537,23 +540,23 @@ basesets</code></pre>
 ##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
 ##                 4                 5                 6                 7 
 ## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
-## 8 Levels: CD4 T cells CD14+ Monocytes B cells ... Megakaryocytes</code></pre>
+## 8 Levels: B cells CD14+ Monocytes CD4 T cells ... NK cells</code></pre>
 </div>
 </div>
 <div id="visualizing-predictions" class="section level1">
 <h1>Visualizing predictions</h1>
 <div id="heat-map" class="section level2">
 <h2>Heat map</h2>
-<p>It is possible to visualize the result as a heat map. See how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.</p>
+<p>It is possible to visualize the proportion of cells positive for each signature in each cluster as a heat map. Note how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.</p>
 <pre class="r"><code>plotProportionPositive(sce, cluster_rows=FALSE, cluster_columns=FALSE)</code></pre>
 <p><img src="1-proportion_signature_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<p>We can also let signatures and clusters of cells cluster in the heat map. Not surprisingly, the clusters annotated as “CD14+ Monocytes” and “FCGR3A+ Monocytes” show some similarity, as do the clusters annotated as “CD4 T cells” and “CD8 T cells”.</p>
+<p>We can also let signatures and clusters of cells cluster in the heat map. Unsurprisingly, the clusters annotated as subtypes of monocytes show some similarity, as do the clusters annotated as T cell subtypes.</p>
 <pre class="r"><code>plotProportionPositive(sce)</code></pre>
 <p><img src="1-proportion_signature_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
 <div id="reduced-dimension" class="section level2">
 <h2>Reduced dimension</h2>
-<p>We can also display the expression of each marker on t-SNE result.</p>
+<p>With a bit more code, we can also display the expression of each marker on t-SNE result.</p>
 <pre class="r"><code>ggList &lt;- list()
 for (markerName in unique(unlist(elementIds(basesets)))) {
     ggDataFrame &lt;- data.frame(

@@ -611,7 +611,7 @@ seuratTutorialMarkers</code></pre>
 <p>Let us visualize the top 2 markers identified in this way for each cluster.</p>
 <p>For reference, the cell type identity associated with markers mentioned in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat tutorial</a> is indicated in each panel subtitle, where applicable.</p>
 <pre class="r"><code>ggList &lt;- list()
-for (markerName in elementIds(basesets)) {
+for (markerName in ids(elements(basesets))) {
     ggDataFrame &lt;- data.frame(
         reducedDim(sce, &quot;TSNE&quot;),
         logcounts=assay(sce, &quot;logcounts&quot;)[markerName, ]
@@ -673,7 +673,8 @@ scree0 &lt;- makeMarkerProportionScree(detection0)
 # Plot
 ggplot(scree0, aes(markers, proportion)) +
     geom_line() + geom_point(size=0.4) +
-    scale_y_continuous(limits=c(0, 1)) + scale_x_continuous(limits=c(1, topMarkers)) +
+    scale_y_continuous(limits=c(0, 1), labels = scales::percent) +
+    scale_x_continuous(limits=c(1, topMarkers)) +
     theme(panel.grid.major=element_line(color=&quot;grey90&quot;, size=0.5)) +
     labs(x=&quot;Number of top markers&quot;, y=&quot;Proportion positive for all markers&quot;)</code></pre>
 <p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>

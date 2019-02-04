@@ -13,6 +13,7 @@ suppressPackageStartupMessages({
     library(unisets)
     library(ggplot2)
     library(cowplot)
+    library(scales)
     library(shiny)
 })
 ```
@@ -72,7 +73,7 @@ For reference, the cell type identity associated with markers mentioned in the [
 
 ```{r, fig.height=12, fig.width=8}
 ggList <- list()
-for (markerName in elementIds(basesets)) {
+for (markerName in ids(elements(basesets))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
         logcounts=assay(sce, "logcounts")[markerName, ]
@@ -147,7 +148,8 @@ scree0 <- makeMarkerProportionScree(detection0)
 # Plot
 ggplot(scree0, aes(markers, proportion)) +
     geom_line() + geom_point(size=0.4) +
-    scale_y_continuous(limits=c(0, 1)) + scale_x_continuous(limits=c(1, topMarkers)) +
+    scale_y_continuous(limits=c(0, 1), labels = scales::percent) +
+    scale_x_continuous(limits=c(1, topMarkers)) +
     theme(panel.grid.major=element_line(color="grey90", size=0.5)) +
     labs(x="Number of top markers", y="Proportion positive for all markers")
 ```

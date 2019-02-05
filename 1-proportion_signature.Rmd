@@ -30,7 +30,7 @@ sce
 
 # Gene signatures
 
-Declare the predefined gene signatures used in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html)
+Declare the predefined gene signatures used in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
 
 ```{r}
 geneLists <- list(

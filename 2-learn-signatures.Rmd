@@ -6,7 +6,7 @@ date: "19/12/2018"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(cache=FALSE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(hancock)

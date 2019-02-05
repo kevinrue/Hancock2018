@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-04" />
+<meta name="date" content="2019-02-05" />
 
 <title>Applying Gene Signatures to the Seurat PBMC 3k Tutorial</title>
 
@@ -437,7 +437,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>4 February 2019</em></h4>
+<h4 class="date"><em>5 February 2019</em></h4>
 
 </div>
 
@@ -502,22 +502,22 @@ basesets</code></pre>
 <p>The key output is the cell identity predicted for each cell in the object. This information is stored in <code>colData(sce)[["hancock"]][["prediction"]]</code>, or <code>sce$hancock$prediction</code>, in short.</p>
 <pre class="r"><code>table(sce$hancock$prediction)</code></pre>
 <pre><code>## 
-##           B cells   CD14+ Monocytes       CD4 T cells       CD8 T cells 
-##               342               479              1151               308 
-##   Dendritic Cells FCGR3A+ Monocytes    Megakaryocytes          NK cells 
-##                32               157                14               155</code></pre>
+##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
+##              1151               479               342               308 
+## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
+##               157               155                32                14</code></pre>
 <p>With <code>method="ProportionPositive"</code>, all cells in each cluster are annotated with the predominant signature in their associated cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell.</p>
 <pre class="r"><code>table(sce$hancock$prediction, sce$ident)</code></pre>
 <pre><code>##                    
 ##                        0    1    2    3    4    5    6    7
-##   B cells              0    0  342    0    0    0    0    0
-##   CD14+ Monocytes      0  479    0    0    0    0    0    0
 ##   CD4 T cells       1151    0    0    0    0    0    0    0
+##   CD14+ Monocytes      0  479    0    0    0    0    0    0
+##   B cells              0    0  342    0    0    0    0    0
 ##   CD8 T cells          0    0    0  308    0    0    0    0
-##   Dendritic Cells      0    0    0    0    0    0   32    0
 ##   FCGR3A+ Monocytes    0    0    0    0  157    0    0    0
-##   Megakaryocytes       0    0    0    0    0    0    0   14
-##   NK cells             0    0    0    0    0  155    0    0</code></pre>
+##   NK cells             0    0    0    0    0  155    0    0
+##   Dendritic Cells      0    0    0    0    0    0   32    0
+##   Megakaryocytes       0    0    0    0    0    0    0   14</code></pre>
 <p>This view can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.</p>
 <p>In addition to the final predictions, the updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object also contain some additional information tracing to the process of prediction. That information can be found in <code>metadata(sce)[["hancock"]]</code>.</p>
 <pre class="r"><code>names(metadata(sce)[[&quot;hancock&quot;]])</code></pre>
@@ -540,7 +540,7 @@ basesets</code></pre>
 ##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
 ##                 4                 5                 6                 7 
 ## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
-## 8 Levels: B cells CD14+ Monocytes CD4 T cells ... NK cells</code></pre>
+## 8 Levels: CD4 T cells CD14+ Monocytes B cells ... Megakaryocytes</code></pre>
 </div>
 </div>
 <div id="visualizing-predictions" class="section level1">

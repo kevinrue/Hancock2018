@@ -6,7 +6,7 @@ date: "`r BiocStyle::doc_date()`"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(cache=FALSE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(unisets)

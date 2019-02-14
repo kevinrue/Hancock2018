@@ -123,7 +123,7 @@ With a bit more code, we can also display the expression of each marker on t-SNE
 
 ```{r, fig.height=10}
 ggList <- list()
-for (markerName in unique(unlist(elementIds(basesets)))) {
+for (markerName in unique(unlist(ids(elementData(basesets))))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
         logcounts=assay(sce, "logcounts")[markerName, ]

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-05" />
+<meta name="date" content="2019-02-14" />
 
 <title>Applying Gene Signatures to the Seurat PBMC 3k Tutorial</title>
 
@@ -437,7 +437,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>5 February 2019</em></h4>
+<h4 class="date"><em>14 February 2019</em></h4>
 
 </div>
 
@@ -558,7 +558,7 @@ basesets</code></pre>
 <h2>Reduced dimension</h2>
 <p>With a bit more code, we can also display the expression of each marker on t-SNE result.</p>
 <pre class="r"><code>ggList &lt;- list()
-for (markerName in unique(unlist(elementIds(basesets)))) {
+for (markerName in unique(unlist(ids(elementData(basesets))))) {
     ggDataFrame &lt;- data.frame(
         reducedDim(sce, &quot;TSNE&quot;),
         logcounts=assay(sce, &quot;logcounts&quot;)[markerName, ]

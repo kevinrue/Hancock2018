@@ -20,8 +20,8 @@ In this example, we use count data for 2,700 peripheral blood mononuclear cells 
 
 # Getting the data
 
-First, we fetch the data as a `r Biocpkg("SingleCellExperiment")` object using the `r Biocpkg("TENxPBMCData")` package.
-The first time the following code chunk is run may take longer, as the data is downloaded from the web and cached locally; subsequent evaluations of the code chunk should only take a few seconds as the data set is then loaded from the local cache.
+First, fetch the data as a `r Biocpkg("SingleCellExperiment")` object using the `r Biocpkg("TENxPBMCData")` package.
+The first time that the following code chunk is run, users should expect it to take additional time as it downloads data from the web and caches it on their local machine; subsequent evaluations of the same code chunk should only take a few seconds as the data set is then loaded from the local cache.
 
 ```{r}
 library(TENxPBMCData)
@@ -32,7 +32,7 @@ tenx_pbmc3k
 
 # Preparing the data
 
-Next, we prepare a sparse matrix that emulates the first section of the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
+Next, prepare a sparse matrix that emulates the first section of the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
 
 ```{r}
 library(Matrix)

@@ -6,20 +6,21 @@ date: "19/12/2018"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(cache=FALSE)
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(hancock)
     library(unisets)
     library(ggplot2)
     library(cowplot)
+    library(scales)
     library(shiny)
 })
 ```
 
 # Example data set
 
-First, we load the preprocessed SingleCellExperiment object of 10x PBMC 3k.
+First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed [here](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
 
 ```{r, }
 sce <- readRDS("pbmc3k_tutorial.sce.rds")
@@ -29,19 +30,22 @@ sce
 # Learning signatures from a data set
 
 According to the tutorial, cluster "0" comprises CD4 T cells marked by the expression of the gene _IL7R_.
-When applying the _IL7R_ signature, we have shown that indeed _IL7R_ is expressed at a relatively high frequency in cluster "0" and much less frequently detected in all other clusters.
+When applying the _IL7R_ signature, we [have shown](1-proportion_signature.html) that indeed _IL7R_ is expressed at a relatively high frequency in cluster "0" and much less frequently detected in all other clusters.
 
 Now, let us programmatically identify the top 2 markers for each cluster by asking the question:
-"Which genes are detected in the target cluster at a frequency at least 20% higher than any other cluster"?
+"Which genes are detected (non-zero count) in the target cluster at a frequency at least 20% higher than any other cluster"?
+
+In addition, the default behaviour of the function requires that--_together_--the genes that comprise each signature are co-detected in at least 10% of the target cluster (`min.prop=0.1`).
 
 ```{r}
 basesets <- learnSignatures(
     sce, method = "PositiveProportionDifference",
-    cluster.col="ident", assay.type = "counts", threshold = 0, n = 2, min.diff = 0.2)
+    cluster.col="ident", assay.type = "counts", threshold = 0, n = 2, min.diff = 0.2,
+    diff.method = "min", min.prop = 0.1)
 knitr::kable(basesets)
 ```
 
-Note that the table above does highlight some of the markers suggested in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) (listed below).
+Note that the table above does include some of the markers suggested in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) (listed below).
 Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).
 
 ```{r}
@@ -63,12 +67,13 @@ seuratTutorialMarkers
 
 ## Reduced dimension
 
-Let us visualize the top 2 markers for each cluster.
-The cell type identity associated with markers mentioned in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) is indicated in each panel subtitle. 
+Let us visualize the top 2 markers identified in this way for each cluster.
+
+For reference, the cell type identity associated with markers mentioned in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) is indicated in each panel subtitle, where applicable. 
 
 ```{r, fig.height=12, fig.width=8}
 ggList <- list()
-for (markerName in elementIds(basesets)) {
+for (markerName in ids(elements(basesets))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
         logcounts=assay(sce, "logcounts")[markerName, ]
@@ -92,7 +97,7 @@ cowplot::plot_grid(plotlist = ggList)
 ## Interactively
 
 It is possible to interactively set the names of each gene signature learned using an interactive _Shiny_ app.
-For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `tbl_geneset` object) and the annotated `SingleCellExperiment` to the interactive app.
+For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `BaseSets` object) and the annotated `SingleCellExperiment` to the interactive app.
 
 ```{r}
 basesets <- learnSignatures(
@@ -109,7 +114,7 @@ Note how the returned `basesets` object contains any update you may have done to
 ## Proportion of cells predicted for each signature
 
 One may also visualize the proportion of cells positive for each signature in each cluster.
-If you renamed any signature in the previous chunk, the `predict` method may be run again to apply the new labels to the `SingleCellExperiment` object.
+If you renamed any signature in the previous chunk, the `predict` method should be run again to apply the new labels to the `SingleCellExperiment` object.
 
 ```{r}
 scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="ident")
@@ -120,11 +125,12 @@ plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)
 
 ## Scree detection plot
 
-The learning method `"PositiveProportionDifference"` allows the trimming of candidate markers to those that are _simultaneously_ detected in a minimal proportion of samples in the target cluster.
-For the purpose of defining qualitative gene signatures, it can be useful to ensure that all of the combined gene set that makes up a signature is fully detected in a minimal proportion of samples.
+The learning method `"PositiveProportionDifference"` allows the trimming of candidate markers to those that are co-detected in a minimal proportion of samples in the target cluster.
+The trimming process starts from the most frequently detected marker and stop when the frequency of co-detection drops below the required minimal proportion; all candidate markers beyond this point are dropped.
+The motivation here is that for the purpose of defining qualitative gene signatures, it is useful to ensure that all of the combined gene set that makes up a signature is fully detected in a minimal proportion of samples.
 
-To illustrate this process, the code chunk below computes and displays the proportion of cells in cluster `"0"` in which the N most frequently detected markers are simultaneously detected.
-The figure displays the proportion of samples with detectable expression of the most frequently detected gene, the two most frequently detected genes (simultaneously), etc.
+To illustrate this process, the code chunk below computes and displays the proportion of cells in cluster `"0"` in which the _N_ most frequently detected markers are co-detected.
+Specifically, the figure displays the proportion of samples with detectable expression of the most frequently detected gene, the two most frequently detected genes (simultaneously), etc.
 
 ```{r}
 # Choose a cluster for this example
@@ -142,7 +148,8 @@ scree0 <- makeMarkerProportionScree(detection0)
 # Plot
 ggplot(scree0, aes(markers, proportion)) +
     geom_line() + geom_point(size=0.4) +
-    scale_y_continuous(limits=c(0, 1)) + scale_x_continuous(limits=c(1, topMarkers)) +
+    scale_y_continuous(limits=c(0, 1), labels = scales::percent) +
+    scale_x_continuous(limits=c(1, topMarkers)) +
     theme(panel.grid.major=element_line(color="grey90", size=0.5)) +
     labs(x="Number of top markers", y="Proportion positive for all markers")
 ```

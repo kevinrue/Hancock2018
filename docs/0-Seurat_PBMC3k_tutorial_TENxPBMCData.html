@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-03" />
+<meta name="date" content="2019-02-14" />
 
 <title>Seurat PBMC 3k tutorial using TENxPBMCData</title>
 
@@ -405,7 +405,7 @@ div.tocify {
       <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">Data</a>
     </li>
     <li>
-      <a href="1-proportion_signature.html">Predicting signatures</a>
+      <a href="1-proportion_signature.html">Applying signatures</a>
     </li>
     <li>
       <a href="2-learn-signatures.html">Learning signatures</a>
@@ -437,7 +437,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Seurat PBMC 3k tutorial using TENxPBMCData</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>3 February 2019</em></h4>
+<h4 class="date"><em>14 February 2019</em></h4>
 
 </div>
 
@@ -448,14 +448,71 @@ div.tocify {
 </div>
 <div id="getting-the-data" class="section level1">
 <h1>Getting the data</h1>
-<p>First, we fetch the data as a <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object using the <em><a href="https://bioconductor.org/packages/3.9/TENxPBMCData">TENxPBMCData</a></em> package. The first time the following code chunk is run may take longer, as the data is downloaded from the web and cached locally; subsequent evaluations of the code chunk should only take a few seconds as the data set is then loaded from the local cache.</p>
-<pre class="r"><code>library(TENxPBMCData)
-tenx_pbmc3k &lt;- TENxPBMCData(dataset=&quot;pbmc3k&quot;)</code></pre>
-<pre><code>## snapshotDate(): 2019-01-09</code></pre>
+<p>First, fetch the data as a <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object using the <em><a href="https://bioconductor.org/packages/3.9/TENxPBMCData">TENxPBMCData</a></em> package. The first time that the following code chunk is run, users should expect it to take additional time as it downloads data from the web and caches it on their local machine; subsequent evaluations of the same code chunk should only take a few seconds as the data set is then loaded from the local cache.</p>
+<pre class="r"><code>library(TENxPBMCData)</code></pre>
+<pre><code>## Loading required package: SingleCellExperiment</code></pre>
+<pre><code>## Loading required package: SummarizedExperiment</code></pre>
+<pre><code>## Loading required package: GenomicRanges</code></pre>
+<pre><code>## Loading required package: stats4</code></pre>
+<pre><code>## Loading required package: BiocGenerics</code></pre>
+<pre><code>## Loading required package: parallel</code></pre>
+<pre><code>## 
+## Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:parallel&#39;:
+## 
+##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+##     clusterExport, clusterMap, parApply, parCapply, parLapply,
+##     parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     IQR, mad, sd, var, xtabs</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     anyDuplicated, append, as.data.frame, basename, cbind,
+##     colMeans, colnames, colSums, dirname, do.call, duplicated,
+##     eval, evalq, Filter, Find, get, grep, grepl, intersect,
+##     is.unsorted, lapply, Map, mapply, match, mget, order, paste,
+##     pmax, pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
+##     rowMeans, rownames, rowSums, sapply, setdiff, sort, table,
+##     tapply, union, unique, unsplit, which, which.max, which.min</code></pre>
+<pre><code>## Loading required package: S4Vectors</code></pre>
+<pre><code>## 
+## Attaching package: &#39;S4Vectors&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:base&#39;:
+## 
+##     expand.grid</code></pre>
+<pre><code>## Loading required package: IRanges</code></pre>
+<pre><code>## Loading required package: GenomeInfoDb</code></pre>
+<pre><code>## Loading required package: Biobase</code></pre>
+<pre><code>## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     &#39;browseVignettes()&#39;. To cite Bioconductor, see
+##     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
+<pre><code>## Loading required package: DelayedArray</code></pre>
+<pre><code>## Loading required package: matrixStats</code></pre>
+<pre><code>## 
+## Attaching package: &#39;matrixStats&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:Biobase&#39;:
+## 
+##     anyMissing, rowMedians</code></pre>
+<pre><code>## Loading required package: BiocParallel</code></pre>
+<pre><code>## 
+## Attaching package: &#39;DelayedArray&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
+## 
+##     colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     aperm, apply, rowsum</code></pre>
+<pre><code>## Loading required package: HDF5Array</code></pre>
+<pre><code>## Loading required package: rhdf5</code></pre>
+<pre class="r"><code>tenx_pbmc3k &lt;- TENxPBMCData(dataset=&quot;pbmc3k&quot;)</code></pre>
+<pre><code>## snapshotDate(): 2019-01-25</code></pre>
 <pre><code>## see ?TENxPBMCData and browseVignettes(&#39;TENxPBMCData&#39;) for documentation</code></pre>
 <pre><code>## downloading 0 resources</code></pre>
 <pre><code>## loading from cache 
-##     &#39;/Users/kralbrecht//.ExperimentHub/1607&#39;</code></pre>
+##     &#39;/Users/kevin//.ExperimentHub/1607&#39;</code></pre>
 <pre class="r"><code>tenx_pbmc3k</code></pre>
 <pre><code>## class: SingleCellExperiment 
 ## dim: 32738 2700 
@@ -471,9 +528,14 @@ tenx_pbmc3k &lt;- TENxPBMCData(dataset=&quot;pbmc3k&quot;)</code></pre>
 </div>
 <div id="preparing-the-data" class="section level1">
 <h1>Preparing the data</h1>
-<p>Next, we prepare a sparse matrix that emulates the first section of the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a>.</p>
-<pre class="r"><code>library(Matrix)
-pbmc.data &lt;- as(counts(tenx_pbmc3k), &quot;Matrix&quot;)
+<p>Next, prepare a sparse matrix that emulates the first section of the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a>.</p>
+<pre class="r"><code>library(Matrix)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:S4Vectors&#39;:
+## 
+##     expand</code></pre>
+<pre class="r"><code>pbmc.data &lt;- as(counts(tenx_pbmc3k), &quot;Matrix&quot;)
 pbmc.data &lt;- as(pbmc.data, &quot;dgTMatrix&quot;)
 colnames(pbmc.data) &lt;- paste0(&quot;Cell&quot;, seq_len(ncol(pbmc.data)))
 rownames(pbmc.data) &lt;- make.unique(rowData(tenx_pbmc3k)[, &quot;Symbol_TENx&quot;, drop=TRUE])</code></pre>
@@ -481,9 +543,53 @@ rownames(pbmc.data) &lt;- make.unique(rowData(tenx_pbmc3k)[, &quot;Symbol_TENx&q
 <div id="seurat---guided-clustering-tutorial" class="section level1">
 <h1>Seurat - Guided Clustering Tutorial</h1>
 <p>From here on, follow the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> to the letter (code obtained on 2018-11-24).</p>
-<pre class="r"><code>library(Seurat)
-library(dplyr)
-# Initialize the Seurat object with the raw (non-normalized data).  Keep all
+<pre class="r"><code>library(Seurat)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## Registered S3 methods overwritten by &#39;ggplot2&#39;:
+##   method         from 
+##   [.quosures     rlang
+##   c.quosures     rlang
+##   print.quosures rlang</code></pre>
+<pre><code>## Loading required package: cowplot</code></pre>
+<pre><code>## 
+## Attaching package: &#39;cowplot&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     ggsave</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;R.oo&#39;:
+##   method        from       
+##   throw.default R.methodsS3</code></pre>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:matrixStats&#39;:
+## 
+##     count</code></pre>
+<pre><code>## The following object is masked from &#39;package:Biobase&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## The following objects are masked from &#39;package:GenomicRanges&#39;:
+## 
+##     intersect, setdiff, union</code></pre>
+<pre><code>## The following object is masked from &#39;package:GenomeInfoDb&#39;:
+## 
+##     intersect</code></pre>
+<pre><code>## The following objects are masked from &#39;package:IRanges&#39;:
+## 
+##     collapse, desc, intersect, setdiff, slice, union</code></pre>
+<pre><code>## The following objects are masked from &#39;package:S4Vectors&#39;:
+## 
+##     first, intersect, rename, setdiff, setequal, union</code></pre>
+<pre><code>## The following objects are masked from &#39;package:BiocGenerics&#39;:
+## 
+##     combine, intersect, setdiff, union</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code># Initialize the Seurat object with the raw (non-normalized data).  Keep all
 # genes expressed in &gt;= 3 cells (~0.1% of the data). Keep all cells with at
 # least 200 detected genes
 pbmc &lt;- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, project=&quot;10X_PBMC&quot;)</code></pre>
@@ -527,7 +633,7 @@ pbmc &lt;- FilterCells(object=pbmc, subset.names=c(&quot;nGene&quot;, &quot;perc
 <pre class="r"><code>pbmc &lt;- ScaleData(object=pbmc, vars.to.regress=c(&quot;nUMI&quot;, &quot;percent.mito&quot;))</code></pre>
 <pre><code>## Regressing out: nUMI, percent.mito</code></pre>
 <pre><code>## 
-## Time Elapsed:  11.0632710456848 secs</code></pre>
+## Time Elapsed:  17.0594549179077 secs</code></pre>
 <pre><code>## Scaling data matrix</code></pre>
 <pre class="r"><code>pbmc &lt;- RunPCA(object=pbmc, pc.genes=pbmc@var.genes, do.print=TRUE, pcs.print=1:5, 
     genes.print=5)</code></pre>
@@ -636,7 +742,7 @@ if (FALSE) {
 pbmc &lt;- FindClusters(object=pbmc, reduction.type=&quot;pca&quot;, dims.use=1:10, 
     resolution=0.6, print.output=0, save.SNN=TRUE)</code></pre>
 <pre class="r"><code>PrintFindClustersParams(object=pbmc)</code></pre>
-<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-01-13 15:53:47
+<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-02-04 20:28:03
 ## =============================================================================
 ## Resolution: 0.6
 ## -----------------------------------------------------------------------------

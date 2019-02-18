@@ -2,6 +2,8 @@
 title: "Seurat PBMC 3k tutorial using TENxPBMCData"
 author: "Kevin Rue-Albrecht"
 date: "`r BiocStyle::doc_date()`"
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -24,6 +26,7 @@ The first time the following code chunk is run may take longer, as the data is d
 ```{r}
 library(TENxPBMCData)
 tenx_pbmc3k <- TENxPBMCData(dataset="pbmc3k")
+colnames(tenx_pbmc3k) <- paste0("Cell", seq_len(ncol(pbmc.data)))
 tenx_pbmc3k
 ```
 
@@ -35,8 +38,6 @@ Next, we prepare a sparse matrix that emulates the first section of the [Guided 
 library(Matrix)
 pbmc.data <- as(counts(tenx_pbmc3k), "Matrix")
 pbmc.data <- as(pbmc.data, "dgTMatrix")
-colnames(pbmc.data) <- paste0("Cell", seq_len(ncol(pbmc.data)))
-rownames(pbmc.data) <- make.unique(rowData(tenx_pbmc3k)[, "Symbol_TENx", drop=TRUE])
 ```
 
 # Seurat - Guided Clustering Tutorial
@@ -50,6 +51,7 @@ library(dplyr)
 # genes expressed in >= 3 cells (~0.1% of the data). Keep all cells with at
 # least 200 detected genes
 pbmc <- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, project="10X_PBMC")
+pbmc
 ```
 
 ```{r}
@@ -60,7 +62,8 @@ pbmc <- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, proje
 # We use object@raw.data since this represents non-transformed and
 # non-log-normalized counts The % of UMI mapping to MT-genes is a common
 # scRNA-seq QC metric.
-mito.genes <- grep(pattern="^MT-", x=rownames(x=pbmc@data), value=TRUE)
+mito.genes <- subset(rowData(tenx_pbmc3k), grepl("^MT-", Symbol_TENx), "ENSEMBL_ID", drop=TRUE)
+mito.genes <- intersect(mito.genes, rownames(pbmc@raw.data))
 percent.mito <- Matrix::colSums(pbmc@raw.data[mito.genes, ])/Matrix::colSums(pbmc@raw.data)
 
 # AddMetaData adds columns to object@meta.data, and is a great place to
@@ -187,11 +190,22 @@ Save the `seurat` object
 saveRDS(pbmc, file="pbmc3k_tutorial.rds")
 ```
 
-Save the equivalent `SingleCellExperiment` object
+Save the original `SingleCellExperiment` object, after adding the cluster assignments.
 
 ```{r}
-sce_pbmc <- as.SingleCellExperiment(pbmc)
-saveRDS(sce_pbmc, file="pbmc3k_tutorial.sce.rds")
+colData(tenx_pbmc3k)[pbmc@cell.names, "seurat.ident"] <- pbmc@ident
+tenx_pbmc3k$seurat.ident <- factor(tenx_pbmc3k$seurat.ident, levels(pbmc@ident))
+colnames(tenx_pbmc3k) <- NULL # remove the dummy cell names before exporting
+saveRDS(tenx_pbmc3k, file="pbmc3k_tutorial.sce.rds")
+```
+
+Export the cluster identity vector.
+It will be included in the `hancock` package, and mapped using the dummy cell names defined at the start of this notebook.
+
+```{r}
+ident <- pbmc@ident
+names(ident) <- pbmc@cell.names
+saveRDS(ident, "pbmc3k.ident.rds")
 ```
 
 Note that the marker genes used to later assign cell identities to the various clusters are listed below

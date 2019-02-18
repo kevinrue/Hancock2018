@@ -23,10 +23,10 @@ In this example, we use count data for 2,700 peripheral blood mononuclear cells 
 First, fetch the data as a `r Biocpkg("SingleCellExperiment")` object using the `r Biocpkg("TENxPBMCData")` package.
 The first time that the following code chunk is run, users should expect it to take additional time as it downloads data from the web and caches it on their local machine; subsequent evaluations of the same code chunk should only take a few seconds as the data set is then loaded from the local cache.
 
-```{r}
+```{r, message=FALSE}
 library(TENxPBMCData)
 tenx_pbmc3k <- TENxPBMCData(dataset="pbmc3k")
-colnames(tenx_pbmc3k) <- paste0("Cell", seq_len(ncol(pbmc.data)))
+colnames(tenx_pbmc3k) <- paste0("Cell", seq_len(ncol(tenx_pbmc3k)))
 tenx_pbmc3k
 ```
 
@@ -34,7 +34,7 @@ tenx_pbmc3k
 
 Next, prepare a sparse matrix that emulates the first section of the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
 
-```{r}
+```{r, message=FALSE}
 library(Matrix)
 pbmc.data <- as(counts(tenx_pbmc3k), "Matrix")
 pbmc.data <- as(pbmc.data, "dgTMatrix")
@@ -44,7 +44,7 @@ pbmc.data <- as(pbmc.data, "dgTMatrix")
 
 From here on, follow the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) to the letter (code obtained on 2018-11-24).
 
-```{r}
+```{r, message=FALSE}
 library(Seurat)
 library(dplyr)
 # Initialize the Seurat object with the raw (non-normalized data).  Keep all
@@ -190,37 +190,29 @@ Save the `seurat` object
 saveRDS(pbmc, file="pbmc3k_tutorial.rds")
 ```
 
-Save the original `SingleCellExperiment` object, after adding the cluster assignments.
+Save the original `SingleCellExperiment` object, after:
+
+- removing the cells excluded by quality metrics during the Seurat workflow
+- adding the cluster assignments
+- adding the PCA and t-SNE dimensionality reduction results
+
 
 ```{r}
-colData(tenx_pbmc3k)[pbmc@cell.names, "seurat.ident"] <- pbmc@ident
-tenx_pbmc3k$seurat.ident <- factor(tenx_pbmc3k$seurat.ident, levels(pbmc@ident))
+tenx_pbmc3k <- tenx_pbmc3k[, pbmc@cell.names]
+colData(tenx_pbmc3k)[["seurat.ident"]] <- as.factor(pbmc@ident)
+reducedDim(tenx_pbmc3k, "PCA") <- pbmc@dr$pca@cell.embeddings
+reducedDim(tenx_pbmc3k, "TSNE") <- pbmc@dr$tsne@cell.embeddings
 colnames(tenx_pbmc3k) <- NULL # remove the dummy cell names before exporting
 saveRDS(tenx_pbmc3k, file="pbmc3k_tutorial.sce.rds")
 ```
 
 Export the cluster identity vector.
-It will be included in the `hancock` package, and mapped using the dummy cell names defined at the start of this notebook.
+It will be included in the `r Githubpkg("kevinrue/hancock")` package, and mapped using the dummy cell names defined at the start of this notebook.
 
 ```{r}
 ident <- pbmc@ident
 names(ident) <- pbmc@cell.names
 saveRDS(ident, "pbmc3k.ident.rds")
-```
-
-Note that the marker genes used to later assign cell identities to the various clusters are listed below
-
-```{r}
-## Markers and cell type annotations by cluster
-# Cluster ID	Markers	        Cell Type
-# 0             IL7R	        CD4 T cells
-# 1             CD14, LYZ	    CD14+ Monocytes
-# 2	            MS4A1           B cells
-# 3	            CD8A	        CD8 T cells
-# 4	            FCGR3A, MS4A7	FCGR3A+ Monocytes
-# 5	            GNLY, NKG7	    NK cells
-# 6	            FCER1A, CST3	Dendritic Cells
-# 7	            PPBP	        Megakaryocytes
 ```
 
 # See also

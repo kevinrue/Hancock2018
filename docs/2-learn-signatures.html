@@ -444,30 +444,46 @@ div.tocify {
 <div id="example-data-set" class="section level1">
 <h1>Example data set</h1>
 <p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">here</a>.</p>
-<pre class="r"><code>sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
+<pre class="r"><code>library(SingleCellExperiment)
+sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
 sce</code></pre>
 <pre><code>## class: SingleCellExperiment 
-## dim: 13714 2638 
+## dim: 32738 2638 
 ## metadata(0):
-## assays(2): counts logcounts
-## rownames(13714): AL627309.1 AP006222.2 ... PNRC2.1 SRSF10.1
-## rowData names(4): gene gene.mean gene.dispersion
-##   gene.dispersion.scaled
-## colnames(2638): Cell1 Cell2 ... Cell2699 Cell2700
-## colData names(6): nGene nUMI ... res.0.6 ident
+## assays(1): counts
+## rownames(32738): ENSG00000243485 ENSG00000237613 ...
+##   ENSG00000215616 ENSG00000215611
+## rowData names(3): ENSEMBL_ID Symbol_TENx Symbol
+## colnames: NULL
+## colData names(12): Sample Barcode ... Date_published seurat.ident
 ## reducedDimNames(2): PCA TSNE
 ## spikeNames(0):</code></pre>
 </div>
 <div id="learning-signatures-from-a-data-set" class="section level1">
 <h1>Learning signatures from a data set</h1>
-<p>According to the tutorial, cluster “0” comprises CD4 T cells marked by the expression of the gene <em>IL7R</em>. When applying the <em>IL7R</em> signature, we <a href="1-proportion_signature.html">have shown</a> that indeed <em>IL7R</em> is expressed at a relatively high frequency in cluster “0” and much less frequently detected in all other clusters.</p>
-<p>Now, let us programmatically identify the top 2 markers for each cluster by asking the question: “Which genes are detected (non-zero count) in the target cluster at a frequency at least 20% higher than any other cluster”?</p>
-<p>In addition, the default behaviour of the function requires that–<em>together</em>–the genes that comprise each signature are co-detected in at least 10% of the target cluster (<code>min.prop=0.1</code>).</p>
-<pre class="r"><code>basesets &lt;- learnSignatures(
-    sce, method = &quot;PositiveProportionDifference&quot;,
-    cluster.col=&quot;ident&quot;, assay.type = &quot;counts&quot;, threshold = 0, n = 2, min.diff = 0.2,
-    diff.method = &quot;min&quot;, min.prop = 0.1)
-knitr::kable(basesets)</code></pre>
+<p>Here, we use the data set as a reference to learn markers associated with known cell types.</p>
+<p>To do so, we store manually curated cell type annotations (obtained from the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> of the <em><a href="https://CRAN.R-project.org/package=Seurat">Seurat</a></em> package) in the <code>"seurat.celltype"</code> cell metadata.</p>
+<pre class="r"><code>sce$seurat.celltype &lt;- factor(sce$seurat.ident, labels = c(
+    &quot;CD4 T cells&quot;, &quot;CD14+ Monocytes&quot;, &quot;B cells&quot;, &quot;CD8 T cells&quot;,
+    &quot;FCGR3A+ Monocytes&quot;, &quot;NK cells&quot;, &quot;Dendritic Cells&quot;, &quot;Megakaryocytes&quot;
+))
+table(sce$seurat.celltype)</code></pre>
+<pre><code>## 
+##       CD4 T cells   CD14+ Monocytes           B cells       CD8 T cells 
+##              1151               479               342               308 
+## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
+##               157               155                32                14</code></pre>
+<p>Now, let us programmatically identify the top 2 markers for each cluster by asking the question: “Which genes are detected (count strictly greater than 0) in each cell type at a frequency at least 20% higher than any other cell type in the data set”?</p>
+<p>In addition, we require that the genes comprising each signature are co-detected in at least 10% of the target cluster (<code>min.prop=0.1</code>).</p>
+<pre class="r"><code>library(hancock)
+library(knitr)
+basesets &lt;- learnSignatures(
+    sce, assay.type = &quot;counts&quot;,
+    method = &quot;PositiveProportionDifference&quot;, cluster.col=&quot;seurat.ident&quot;,
+    threshold = 0, n = 2, min.diff = 0.2, diff.method = &quot;min&quot;, min.prop = 0.1)
+x &lt;- as.data.frame(basesets)
+x &lt;- cbind(x, Symbol_TENx=rowData(sce)[x$element, &quot;Symbol_TENx&quot;])
+kable(x)</code></pre>
 <table>
 <thead>
 <tr class="header">
@@ -475,109 +491,127 @@ knitr::kable(basesets)</code></pre>
 <th align="left">set</th>
 <th align="right">ProportionPositive</th>
 <th align="right">minDifferenceProportion</th>
+<th align="left">Symbol_TENx</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">NOSIP</td>
+<td align="left">ENSG00000142546</td>
 <td align="left">0</td>
 <td align="right">0.6481321</td>
 <td align="right">0.2418821</td>
+<td align="left">NOSIP</td>
 </tr>
 <tr class="even">
-<td align="left">PIK3IP1</td>
+<td align="left">ENSG00000100100</td>
 <td align="left">0</td>
 <td align="right">0.4178975</td>
 <td align="right">0.2230923</td>
+<td align="left">PIK3IP1</td>
 </tr>
 <tr class="odd">
-<td align="left">S100A8</td>
+<td align="left">ENSG00000143546</td>
 <td align="left">1</td>
 <td align="right">0.9728601</td>
 <td align="right">0.4696754</td>
+<td align="left">S100A8</td>
 </tr>
 <tr class="even">
-<td align="left">CD14</td>
+<td align="left">ENSG00000170458</td>
 <td align="left">1</td>
 <td align="right">0.6617954</td>
 <td align="right">0.4117954</td>
+<td align="left">CD14</td>
 </tr>
 <tr class="odd">
-<td align="left">MS4A1</td>
+<td align="left">ENSG00000156738</td>
 <td align="left">2</td>
 <td align="right">0.8596491</td>
 <td align="right">0.7768466</td>
+<td align="left">MS4A1</td>
 </tr>
 <tr class="even">
-<td align="left">CD79A</td>
+<td align="left">ENSG00000105369</td>
 <td align="left">2</td>
 <td align="right">0.9356725</td>
 <td align="right">0.7481725</td>
+<td align="left">CD79A</td>
 </tr>
 <tr class="odd">
-<td align="left">GZMK</td>
+<td align="left">ENSG00000113088</td>
 <td align="left">3</td>
 <td align="right">0.5876623</td>
 <td align="right">0.4779849</td>
+<td align="left">GZMK</td>
 </tr>
 <tr class="even">
-<td align="left">CD8A</td>
+<td align="left">ENSG00000153563</td>
 <td align="left">3</td>
 <td align="right">0.5032468</td>
 <td align="right">0.3989896</td>
+<td align="left">CD8A</td>
 </tr>
 <tr class="odd">
-<td align="left">MS4A7</td>
+<td align="left">ENSG00000166927</td>
 <td align="left">4</td>
 <td align="right">0.8025478</td>
 <td align="right">0.5415874</td>
+<td align="left">MS4A7</td>
 </tr>
 <tr class="even">
-<td align="left">RP11-290F20.3</td>
+<td align="left">ENSG00000224397</td>
 <td align="left">4</td>
 <td align="right">0.8216561</td>
 <td align="right">0.5252051</td>
+<td align="left">RP11-290F20.3</td>
 </tr>
 <tr class="odd">
-<td align="left">GZMB</td>
+<td align="left">ENSG00000100453</td>
 <td align="left">5</td>
 <td align="right">0.9548387</td>
 <td align="right">0.6658777</td>
+<td align="left">GZMB</td>
 </tr>
 <tr class="even">
-<td align="left">GNLY</td>
+<td align="left">ENSG00000115523</td>
 <td align="left">5</td>
 <td align="right">0.9612903</td>
 <td align="right">0.6528488</td>
+<td align="left">GNLY</td>
 </tr>
 <tr class="odd">
-<td align="left">FCER1A</td>
+<td align="left">ENSG00000179639</td>
 <td align="left">6</td>
 <td align="right">0.8437500</td>
 <td align="right">0.8291362</td>
+<td align="left">FCER1A</td>
 </tr>
 <tr class="even">
-<td align="left">C1QBP</td>
+<td align="left">ENSG00000108561</td>
 <td align="left">6</td>
 <td align="right">0.8437500</td>
 <td align="right">0.4388847</td>
+<td align="left">C1QBP</td>
 </tr>
 <tr class="odd">
-<td align="left">PPBP</td>
+<td align="left">ENSG00000163736</td>
 <td align="left">7</td>
 <td align="right">1.0000000</td>
 <td align="right">0.9426752</td>
+<td align="left">PPBP</td>
 </tr>
 <tr class="even">
-<td align="left">PF4</td>
+<td align="left">ENSG00000163737</td>
 <td align="left">7</td>
 <td align="right">1.0000000</td>
 <td align="right">0.9375000</td>
+<td align="left">PF4</td>
 </tr>
 </tbody>
 </table>
-<p>Note that the table above does include some of the markers suggested in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat tutorial</a> (listed below). Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).</p>
-<pre class="r"><code>seuratTutorialMarkers &lt;- list(
+<p>Note that the table above does include some of the markers suggested in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat Guided Clustering Tutorial</a> (listed below). Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).</p>
+<pre class="r"><code>library(unisets)
+seuratTutorialMarkers &lt;- list(
     &quot;CD4 T cells&quot;=c(&quot;IL7R&quot;),
     &quot;CD14+ Monocytes&quot;=c(&quot;CD14&quot;, &quot;LYZ&quot;),
     &quot;B cells&quot;=c(&quot;MS4A1&quot;),
@@ -609,37 +643,46 @@ seuratTutorialMarkers</code></pre>
 <div id="reduced-dimension" class="section level2">
 <h2>Reduced dimension</h2>
 <p>Let us visualize the top 2 markers identified in this way for each cluster.</p>
-<p>For reference, the cell type identity associated with markers mentioned in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat tutorial</a> is indicated in each panel subtitle, where applicable.</p>
-<pre class="r"><code>ggList &lt;- list()
-for (markerName in ids(elements(basesets))) {
+<p>For reference, the cell type identity associated with markers mentioned in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> is indicated in each panel subtitle, where applicable.</p>
+<pre class="r"><code>library(ggplot2)
+library(cowplot)
+library(scales)
+ggList &lt;- list()
+for (markerId in unique(ids(elements(basesets)))) {
     ggDataFrame &lt;- data.frame(
         reducedDim(sce, &quot;TSNE&quot;),
-        logcounts=assay(sce, &quot;logcounts&quot;)[markerName, ]
+        logcounts=log2(assay(sce, &quot;counts&quot;)[markerId, ] + 1)
     )
+    markerName &lt;- rowData(sce)[markerId, &quot;Symbol_TENx&quot;]
     seuratIdentity &lt;- subset(as(seuratTutorialMarkers, &quot;data.frame&quot;), element == markerName, &quot;set&quot;, drop=TRUE)
     if (length(seuratIdentity) == 0) { seuratIdentity &lt;- &quot; &quot;} # trick to make equal plot dimensions
     gg &lt;- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +
-        labs(title=markerName, subtitle=seuratIdentity, x=NULL, y=NULL) +
+        labs(
+            title=sprintf(&quot;%s (%s)&quot;, markerId, markerName),
+            subtitle=seuratIdentity,
+            x=NULL, y=NULL) +
         theme(
             axis.text = element_blank(), axis.ticks = element_blank(),
-            title = element_text(size=rel(0.9)),
+            title = element_text(size=rel(0.7)),
             legend.text = element_text(size=rel(0.8)), legend.title = element_text(size=rel(0.8)),
             legend.position = &quot;bottom&quot;)
-    ggList[[markerName]] &lt;- gg
+    ggList[[markerId]] &lt;- gg
 }
 cowplot::plot_grid(plotlist = ggList)</code></pre>
-<p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+<p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
 </div>
 <div id="interactively" class="section level2">
 <h2>Interactively</h2>
 <p>It is possible to interactively set the names of each gene signature learned using an interactive <em>Shiny</em> app. For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a <code>BaseSets</code> object) and the annotated <code>SingleCellExperiment</code> to the interactive app.</p>
 <pre class="r"><code>basesets &lt;- learnSignatures(
-    sce, method = &quot;PositiveProportionDifference&quot;,
-    cluster.col=&quot;ident&quot;, assay.type = &quot;counts&quot;, threshold = 0, n = Inf, min.diff = 0.2)
-scePred &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)
+    sce, assay.type = &quot;counts&quot;,
+    method = &quot;PositiveProportionDifference&quot;, cluster.col=&quot;seurat.celltype&quot;,
+    threshold = 0, n = Inf, min.diff = 0.2)
+scePred &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;seurat.ident&quot;)
 if (interactive()){
+    library(shiny)
     basesets &lt;- runApp(shinyLabels(basesets, scePred))
 }</code></pre>
 <p>Note how the returned <code>basesets</code> object contains any update you may have done to the names of the gene sets interactively within the app.</p>
@@ -647,9 +690,9 @@ if (interactive()){
 <div id="proportion-of-cells-predicted-for-each-signature" class="section level2">
 <h2>Proportion of cells predicted for each signature</h2>
 <p>One may also visualize the proportion of cells positive for each signature in each cluster. If you renamed any signature in the previous chunk, the <code>predict</code> method should be run again to apply the new labels to the <code>SingleCellExperiment</code> object.</p>
-<pre class="r"><code>scePred &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)
+<pre class="r"><code>scePred &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;seurat.ident&quot;)
 plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)</code></pre>
-<p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 </div>
 <div id="concepts" class="section level1">
@@ -658,13 +701,14 @@ plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)</code
 <h2>Scree detection plot</h2>
 <p>The learning method <code>"PositiveProportionDifference"</code> allows the trimming of candidate markers to those that are co-detected in a minimal proportion of samples in the target cluster. The trimming process starts from the most frequently detected marker and stop when the frequency of co-detection drops below the required minimal proportion; all candidate markers beyond this point are dropped. The motivation here is that for the purpose of defining qualitative gene signatures, it is useful to ensure that all of the combined gene set that makes up a signature is fully detected in a minimal proportion of samples.</p>
 <p>To illustrate this process, the code chunk below computes and displays the proportion of cells in cluster <code>"0"</code> in which the <em>N</em> most frequently detected markers are co-detected. Specifically, the figure displays the proportion of samples with detectable expression of the most frequently detected gene, the two most frequently detected genes (simultaneously), etc.</p>
-<pre class="r"><code># Choose a cluster for this example
+<pre class="r"><code>library(DelayedMatrixStats)
+# Choose a cluster for this example
 cluster0 &lt;- &quot;0&quot;
 topMarkers &lt;- 100
 # Fetch only the cells of that cluster
-sce0 &lt;- sce[, sce$ident == cluster0]
+sce0 &lt;- sce[, sce$seurat.ident == cluster0]
 # Extract a subset of the most frequently detected genes in those cells
-freq0 &lt;- Matrix::rowSums(assay(sce0, &quot;counts&quot;))
+freq0 &lt;- rowSums2(assay(sce0, &quot;counts&quot;))
 order0 &lt;- order(freq0, decreasing=TRUE)
 # Test whether each marker is detected in each cell
 detection0 &lt;- makeMarkerDetectionMatrix(sce0, head(rownames(sce0)[order0], topMarkers))
@@ -677,7 +721,7 @@ ggplot(scree0, aes(markers, proportion)) +
     scale_x_continuous(limits=c(1, topMarkers)) +
     theme(panel.grid.major=element_line(color=&quot;grey90&quot;, size=0.5)) +
     labs(x=&quot;Number of top markers&quot;, y=&quot;Proportion positive for all markers&quot;)</code></pre>
-<p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 </div>
 <div id="see-also" class="section level1">

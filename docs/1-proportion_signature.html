@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-14" />
+<meta name="date" content="2019-02-18" />
 
 <title>Applying Gene Signatures to the Seurat PBMC 3k Tutorial</title>
 
@@ -437,7 +437,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>14 February 2019</em></h4>
+<h4 class="date"><em>18 February 2019</em></h4>
 
 </div>
 
@@ -445,24 +445,26 @@ div.tocify {
 <div id="example-data-set" class="section level1">
 <h1>Example data set</h1>
 <p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">here</a>.</p>
-<pre class="r"><code>sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
+<pre class="r"><code>library(SingleCellExperiment)
+sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
 sce</code></pre>
 <pre><code>## class: SingleCellExperiment 
-## dim: 13714 2638 
+## dim: 32738 2638 
 ## metadata(0):
-## assays(2): counts logcounts
-## rownames(13714): AL627309.1 AP006222.2 ... PNRC2.1 SRSF10.1
-## rowData names(4): gene gene.mean gene.dispersion
-##   gene.dispersion.scaled
-## colnames(2638): Cell1 Cell2 ... Cell2699 Cell2700
-## colData names(6): nGene nUMI ... res.0.6 ident
+## assays(1): counts
+## rownames(32738): ENSG00000243485 ENSG00000237613 ...
+##   ENSG00000215616 ENSG00000215611
+## rowData names(3): ENSEMBL_ID Symbol_TENx Symbol
+## colnames: NULL
+## colData names(12): Sample Barcode ... Date_published seurat.ident
 ## reducedDimNames(2): PCA TSNE
 ## spikeNames(0):</code></pre>
 </div>
 <div id="gene-signatures" class="section level1">
 <h1>Gene signatures</h1>
 <p>Declare the predefined gene signatures used in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat - Guided Clustering Tutorial</a>.</p>
-<pre class="r"><code>geneLists &lt;- list(
+<pre class="r"><code>library(unisets)
+geneLists &lt;- list(
     &quot;CD4 T cells&quot;=c(&quot;IL7R&quot;),
     &quot;CD14+ Monocytes&quot;=c(&quot;CD14&quot;, &quot;LYZ&quot;),
     &quot;B cells&quot;=c(&quot;MS4A1&quot;),
@@ -493,8 +495,10 @@ basesets</code></pre>
 <h1>Applying signatures to a data set</h1>
 <div id="the-predict-method" class="section level2">
 <h2>The <code>predict</code> method</h2>
-<p>The <em><a href="https://github.com/kevinrue/unisets">unisets</a></em> <code>BaseSets</code> object can immediately be supplied to the <code>predict</code> S3 method, in combination with the <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object to annotate.</p>
-<pre class="r"><code>sce &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;ident&quot;)</code></pre>
+<p>The <code>basesets</code> object can immediately be supplied to the <code>predict</code> S3 method, in combination with the <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object to annotate. However, the cell type signatures described in the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Seurat - Guided Clustering Tutorial</a> use gene symbol identifiers, which do not match the Ensembl gene identifiers used in <code>rownames(sce)</code>. Here, to make the gene identifiers compatible between the data set and the signatures, we simply replace the Ensembl gene identifiers by the <code>"Symbol_TENx"</code> gene metadata, after making duplicated values unique.</p>
+<pre class="r"><code>library(hancock)
+rownames(sce) &lt;- make.unique(rowData(sce)[[&quot;Symbol_TENx&quot;]])
+sce &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;seurat.ident&quot;)</code></pre>
 </div>
 <div id="prediction-outputs" class="section level2">
 <h2>Prediction outputs</h2>
@@ -506,8 +510,8 @@ basesets</code></pre>
 ##              1151               479               342               308 
 ## FCGR3A+ Monocytes          NK cells   Dendritic Cells    Megakaryocytes 
 ##               157               155                32                14</code></pre>
-<p>With <code>method="ProportionPositive"</code>, all cells in each cluster are annotated with the predominant signature in their associated cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell.</p>
-<pre class="r"><code>table(sce$hancock$prediction, sce$ident)</code></pre>
+<p>With <code>method="ProportionPositive"</code>, all cells in each cluster are annotated with the predominant signature in their associated cluster. As such, the cell type prediction may be tabulated against the cluster membership of each cell. This view can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.</p>
+<pre class="r"><code>table(sce$hancock$prediction, sce$seurat.ident)</code></pre>
 <pre><code>##                    
 ##                        0    1    2    3    4    5    6    7
 ##   CD4 T cells       1151    0    0    0    0    0    0    0
@@ -518,7 +522,6 @@ basesets</code></pre>
 ##   NK cells             0    0    0    0    0  155    0    0
 ##   Dendritic Cells      0    0    0    0    0    0   32    0
 ##   Megakaryocytes       0    0    0    0    0    0    0   14</code></pre>
-<p>This view can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.</p>
 <p>In addition to the final predictions, the updated <em><a href="https://bioconductor.org/packages/3.9/SummarizedExperiment">SummarizedExperiment</a></em> object also contain some additional information tracing to the process of prediction. That information can be found in <code>metadata(sce)[["hancock"]]</code>.</p>
 <pre class="r"><code>names(metadata(sce)[[&quot;hancock&quot;]])</code></pre>
 <pre><code>## [1] &quot;GeneSets&quot;                    &quot;method&quot;                     
@@ -550,18 +553,20 @@ basesets</code></pre>
 <p>It is possible to visualize the proportion of cells positive for each signature in each cluster as a heat map. Note how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.</p>
 <pre class="r"><code>plotProportionPositive(sce, cluster_rows=FALSE, cluster_columns=FALSE)</code></pre>
 <p><img src="1-proportion_signature_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<p>We can also let signatures and clusters of cells cluster in the heat map. Unsurprisingly, the clusters annotated as subtypes of monocytes show some similarity, as do the clusters annotated as T cell subtypes.</p>
+<p>We can also let signatures and clusters of cells cluster in the heat map. Unsurprisingly, the subpopulations of monocytes show some similarity, as do the subpopulations of CD4 positive and CD8 positive T cells.</p>
 <pre class="r"><code>plotProportionPositive(sce)</code></pre>
 <p><img src="1-proportion_signature_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
 <div id="reduced-dimension" class="section level2">
 <h2>Reduced dimension</h2>
-<p>With a bit more code, we can also display the expression of each marker on t-SNE result.</p>
-<pre class="r"><code>ggList &lt;- list()
-for (markerName in unique(unlist(ids(elementData(basesets))))) {
+<p>With a bit more code, we can also display the expression of each marker on the result of t-SNE dimensionality reduction.</p>
+<pre class="r"><code>library(ggplot2)
+library(cowplot)
+ggList &lt;- list()
+for (markerName in ids(elementData(basesets))) {
     ggDataFrame &lt;- data.frame(
         reducedDim(sce, &quot;TSNE&quot;),
-        logcounts=assay(sce, &quot;logcounts&quot;)[markerName, ]
+        logcounts=log2(assay(sce, &quot;counts&quot;)[markerName, ] + 1)
     )
     cellIdentity &lt;- subset(as.data.frame(basesets), element == markerName, &quot;set&quot;, drop=TRUE)
     gg &lt;- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +

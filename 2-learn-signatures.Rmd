@@ -2,19 +2,15 @@
 title: "Learning Gene Signatures from the Seurat PBMC 3k Tutorial"
 author: "Kevin Rue-Albrecht"
 date: "19/12/2018"
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(cache=FALSE)
 suppressPackageStartupMessages({
-    library(SingleCellExperiment)
-    library(hancock)
-    library(unisets)
-    library(ggplot2)
-    library(cowplot)
-    library(scales)
-    library(shiny)
+    require(BiocStyle)
 })
 ```
 
@@ -22,33 +18,48 @@ suppressPackageStartupMessages({
 
 First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed [here](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
 
-```{r, }
+```{r, message=FALSE}
+library(SingleCellExperiment)
 sce <- readRDS("pbmc3k_tutorial.sce.rds")
 sce
 ```
 
 # Learning signatures from a data set
 
-According to the tutorial, cluster "0" comprises CD4 T cells marked by the expression of the gene _IL7R_.
-When applying the _IL7R_ signature, we [have shown](1-proportion_signature.html) that indeed _IL7R_ is expressed at a relatively high frequency in cluster "0" and much less frequently detected in all other clusters.
+Here, we use the data set as a reference to learn markers associated with known cell types.
 
-Now, let us programmatically identify the top 2 markers for each cluster by asking the question:
-"Which genes are detected (non-zero count) in the target cluster at a frequency at least 20% higher than any other cluster"?
-
-In addition, the default behaviour of the function requires that--_together_--the genes that comprise each signature are co-detected in at least 10% of the target cluster (`min.prop=0.1`).
+To do so, we store manually curated cell type annotations (obtained from the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) of the `r CRANpkg("Seurat")` package) in the `"seurat.celltype"` cell metadata.
 
 ```{r}
-basesets <- learnSignatures(
-    sce, method = "PositiveProportionDifference",
-    cluster.col="ident", assay.type = "counts", threshold = 0, n = 2, min.diff = 0.2,
-    diff.method = "min", min.prop = 0.1)
-knitr::kable(basesets)
+sce$seurat.celltype <- factor(sce$seurat.ident, labels = c(
+    "CD4 T cells", "CD14+ Monocytes", "B cells", "CD8 T cells",
+    "FCGR3A+ Monocytes", "NK cells", "Dendritic Cells", "Megakaryocytes"
+))
+table(sce$seurat.celltype)
 ```
 
-Note that the table above does include some of the markers suggested in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) (listed below).
+Now, let us programmatically identify the top 2 markers for each cluster by asking the question:
+"Which genes are detected (count strictly greater than 0) in each cell type at a frequency at least 20% higher than any other cell type in the data set"?
+
+In addition, we require that the genes comprising each signature are co-detected in at least 10% of the target cluster (`min.prop=0.1`).
+
+```{r, message=FALSE}
+library(hancock)
+library(knitr)
+basesets <- learnSignatures(
+    sce, assay.type = "counts",
+    method = "PositiveProportionDifference", cluster.col="seurat.ident",
+    threshold = 0, n = 2, min.diff = 0.2, diff.method = "min", min.prop = 0.1)
+x <- as.data.frame(basesets)
+x <- cbind(x, Symbol_TENx=rowData(sce)[x$element, "Symbol_TENx"])
+kable(x)
+```
+
+Note that the table above does include some of the markers suggested in the [Seurat Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) (listed below).
 Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).
 
-```{r}
+```{r, message=FALSE}
+library(unisets)
 seuratTutorialMarkers <- list(
     "CD4 T cells"=c("IL7R"),
     "CD14+ Monocytes"=c("CD14", "LYZ"),
@@ -69,27 +80,34 @@ seuratTutorialMarkers
 
 Let us visualize the top 2 markers identified in this way for each cluster.
 
-For reference, the cell type identity associated with markers mentioned in the [Seurat tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) is indicated in each panel subtitle, where applicable. 
+For reference, the cell type identity associated with markers mentioned in the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) is indicated in each panel subtitle, where applicable. 
 
-```{r, fig.height=12, fig.width=8}
+```{r, message=FALSE, fig.height=12, fig.width=8}
+library(ggplot2)
+library(cowplot)
+library(scales)
 ggList <- list()
-for (markerName in ids(elements(basesets))) {
+for (markerId in unique(ids(elements(basesets)))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
-        logcounts=assay(sce, "logcounts")[markerName, ]
+        logcounts=log2(assay(sce, "counts")[markerId, ] + 1)
     )
+    markerName <- rowData(sce)[markerId, "Symbol_TENx"]
     seuratIdentity <- subset(as(seuratTutorialMarkers, "data.frame"), element == markerName, "set", drop=TRUE)
     if (length(seuratIdentity) == 0) { seuratIdentity <- " "} # trick to make equal plot dimensions
     gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +
-        labs(title=markerName, subtitle=seuratIdentity, x=NULL, y=NULL) +
+        labs(
+            title=sprintf("%s (%s)", markerId, markerName),
+            subtitle=seuratIdentity,
+            x=NULL, y=NULL) +
         theme(
             axis.text = element_blank(), axis.ticks = element_blank(),
-            title = element_text(size=rel(0.9)),
+            title = element_text(size=rel(0.7)),
             legend.text = element_text(size=rel(0.8)), legend.title = element_text(size=rel(0.8)),
             legend.position = "bottom")
-    ggList[[markerName]] <- gg
+    ggList[[markerId]] <- gg
 }
 cowplot::plot_grid(plotlist = ggList)
 ```
@@ -101,10 +119,12 @@ For this purpose, we learn as many markers as possible for each cluster, and we 
 
 ```{r}
 basesets <- learnSignatures(
-    sce, method = "PositiveProportionDifference",
-    cluster.col="ident", assay.type = "counts", threshold = 0, n = Inf, min.diff = 0.2)
-scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="ident")
+    sce, assay.type = "counts",
+    method = "PositiveProportionDifference", cluster.col="seurat.celltype",
+    threshold = 0, n = Inf, min.diff = 0.2)
+scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="seurat.ident")
 if (interactive()){
+    library(shiny)
     basesets <- runApp(shinyLabels(basesets, scePred))
 }
 ```
@@ -117,7 +137,7 @@ One may also visualize the proportion of cells positive for each signature in ea
 If you renamed any signature in the previous chunk, the `predict` method should be run again to apply the new labels to the `SingleCellExperiment` object.
 
 ```{r}
-scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="ident")
+scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="seurat.ident")
 plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)
 ```
 
@@ -132,14 +152,15 @@ The motivation here is that for the purpose of defining qualitative gene signatu
 To illustrate this process, the code chunk below computes and displays the proportion of cells in cluster `"0"` in which the _N_ most frequently detected markers are co-detected.
 Specifically, the figure displays the proportion of samples with detectable expression of the most frequently detected gene, the two most frequently detected genes (simultaneously), etc.
 
-```{r}
+```{r, message=FALSE}
+library(DelayedMatrixStats)
 # Choose a cluster for this example
 cluster0 <- "0"
 topMarkers <- 100
 # Fetch only the cells of that cluster
-sce0 <- sce[, sce$ident == cluster0]
+sce0 <- sce[, sce$seurat.ident == cluster0]
 # Extract a subset of the most frequently detected genes in those cells
-freq0 <- Matrix::rowSums(assay(sce0, "counts"))
+freq0 <- rowSums2(assay(sce0, "counts"))
 order0 <- order(freq0, decreasing=TRUE)
 # Test whether each marker is detected in each cell
 detection0 <- makeMarkerDetectionMatrix(sce0, head(rownames(sce0)[order0], topMarkers))

@@ -2,20 +2,15 @@
 title: "Applying Gene Signatures to the Seurat PBMC 3k Tutorial"
 author: "Kevin Rue-Albrecht"
 date: "`r BiocStyle::doc_date()`"
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
 knitr::opts_chunk$set(cache=FALSE)
 suppressPackageStartupMessages({
-    library(SingleCellExperiment)
-    library(unisets)
-    library(hancock)
-    library(S4Vectors)
-    library(knitr)
-    library(ComplexHeatmap)
-    library(ggplot2)
-    library(cowplot)
+    library(BiocStyle)
 })
 ```
 
@@ -23,7 +18,8 @@ suppressPackageStartupMessages({
 
 First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed [here](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
 
-```{r, }
+```{r, message=FALSE}
+library(SingleCellExperiment)
 sce <- readRDS("pbmc3k_tutorial.sce.rds")
 sce
 ```
@@ -32,7 +28,8 @@ sce
 
 Declare the predefined gene signatures used in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
 
-```{r}
+```{r, message=FALSE}
+library(unisets)
 geneLists <- list(
     "CD4 T cells"=c("IL7R"),
     "CD14+ Monocytes"=c("CD14", "LYZ"),
@@ -51,10 +48,14 @@ basesets
 
 ## The `predict` method
 
-The `r Githubpkg("kevinrue/unisets")` `BaseSets` object can immediately be supplied to the `predict` S3 method, in combination with the `r Biocpkg("SummarizedExperiment")` object to annotate.
+The `basesets` object can immediately be supplied to the `predict` S3 method, in combination with the `r Biocpkg("SummarizedExperiment")` object to annotate.
+However, the cell type signatures described in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) use gene symbol identifiers, which do not match the Ensembl gene identifiers used in `rownames(sce)`.
+Here, to make the gene identifiers compatible between the data set and the signatures, we simply replace the Ensembl gene identifiers by the `"Symbol_TENx"` gene metadata, after making duplicated values unique.
 
-```{r}
-sce <- predict(basesets, sce, method="ProportionPositive", cluster.col="ident")
+```{r, message=FALSE}
+library(hancock)
+rownames(sce) <- make.unique(rowData(sce)[["Symbol_TENx"]])
+sce <- predict(basesets, sce, method="ProportionPositive", cluster.col="seurat.ident")
 ```
 
 ## Prediction outputs
@@ -70,12 +71,11 @@ table(sce$hancock$prediction)
 
 With `method="ProportionPositive"`, all cells in each cluster are annotated with the predominant signature in their associated cluster.
 As such, the cell type prediction may be tabulated against the cluster membership of each cell.
+This view can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.
 
 ```{r}
-table(sce$hancock$prediction, sce$ident)
+table(sce$hancock$prediction, sce$seurat.ident)
 ```
-
-This view can potentially highlight multiple clusters labelled by the same predicted label as a sign of overclustering.
 
 In addition to the final predictions, the updated `r Biocpkg("SummarizedExperiment")` object also contain some additional information tracing to the process of prediction.
 That information can be found in `metadata(sce)[["hancock"]]`.
@@ -111,7 +111,7 @@ plotProportionPositive(sce, cluster_rows=FALSE, cluster_columns=FALSE)
 ```
 
 We can also let signatures and clusters of cells cluster in the heat map.
-Unsurprisingly, the clusters annotated as subtypes of monocytes show some similarity, as do the clusters annotated as T cell subtypes.
+Unsurprisingly, the subpopulations of monocytes show some similarity, as do the subpopulations of CD4 positive and CD8 positive T cells.
 
 ```{r}
 plotProportionPositive(sce)
@@ -119,14 +119,16 @@ plotProportionPositive(sce)
 
 ## Reduced dimension
 
-With a bit more code, we can also display the expression of each marker on t-SNE result.
+With a bit more code, we can also display the expression of each marker on the result of t-SNE dimensionality reduction.
 
-```{r, fig.height=10}
+```{r, message=FALSE, fig.height=10}
+library(ggplot2)
+library(cowplot)
 ggList <- list()
-for (markerName in unique(unlist(ids(elementData(basesets))))) {
+for (markerName in ids(elementData(basesets))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
-        logcounts=assay(sce, "logcounts")[markerName, ]
+        logcounts=log2(assay(sce, "counts")[markerName, ] + 1)
     )
     cellIdentity <- subset(as.data.frame(basesets), element == markerName, "set", drop=TRUE)
     gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +

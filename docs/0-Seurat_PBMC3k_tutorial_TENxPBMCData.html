@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-14" />
+<meta name="date" content="2019-02-18" />
 
 <title>Seurat PBMC 3k tutorial using TENxPBMCData</title>
 
@@ -437,7 +437,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Seurat PBMC 3k tutorial using TENxPBMCData</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>14 February 2019</em></h4>
+<h4 class="date"><em>18 February 2019</em></h4>
 
 </div>
 
@@ -449,71 +449,10 @@ div.tocify {
 <div id="getting-the-data" class="section level1">
 <h1>Getting the data</h1>
 <p>First, fetch the data as a <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object using the <em><a href="https://bioconductor.org/packages/3.9/TENxPBMCData">TENxPBMCData</a></em> package. The first time that the following code chunk is run, users should expect it to take additional time as it downloads data from the web and caches it on their local machine; subsequent evaluations of the same code chunk should only take a few seconds as the data set is then loaded from the local cache.</p>
-<pre class="r"><code>library(TENxPBMCData)</code></pre>
-<pre><code>## Loading required package: SingleCellExperiment</code></pre>
-<pre><code>## Loading required package: SummarizedExperiment</code></pre>
-<pre><code>## Loading required package: GenomicRanges</code></pre>
-<pre><code>## Loading required package: stats4</code></pre>
-<pre><code>## Loading required package: BiocGenerics</code></pre>
-<pre><code>## Loading required package: parallel</code></pre>
-<pre><code>## 
-## Attaching package: &#39;BiocGenerics&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:parallel&#39;:
-## 
-##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-##     clusterExport, clusterMap, parApply, parCapply, parLapply,
-##     parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     IQR, mad, sd, var, xtabs</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     anyDuplicated, append, as.data.frame, basename, cbind,
-##     colMeans, colnames, colSums, dirname, do.call, duplicated,
-##     eval, evalq, Filter, Find, get, grep, grepl, intersect,
-##     is.unsorted, lapply, Map, mapply, match, mget, order, paste,
-##     pmax, pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
-##     rowMeans, rownames, rowSums, sapply, setdiff, sort, table,
-##     tapply, union, unique, unsplit, which, which.max, which.min</code></pre>
-<pre><code>## Loading required package: S4Vectors</code></pre>
-<pre><code>## 
-## Attaching package: &#39;S4Vectors&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:base&#39;:
-## 
-##     expand.grid</code></pre>
-<pre><code>## Loading required package: IRanges</code></pre>
-<pre><code>## Loading required package: GenomeInfoDb</code></pre>
-<pre><code>## Loading required package: Biobase</code></pre>
-<pre><code>## Welcome to Bioconductor
-## 
-##     Vignettes contain introductory material; view with
-##     &#39;browseVignettes()&#39;. To cite Bioconductor, see
-##     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
-<pre><code>## Loading required package: DelayedArray</code></pre>
-<pre><code>## Loading required package: matrixStats</code></pre>
-<pre><code>## 
-## Attaching package: &#39;matrixStats&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:Biobase&#39;:
-## 
-##     anyMissing, rowMedians</code></pre>
-<pre><code>## Loading required package: BiocParallel</code></pre>
-<pre><code>## 
-## Attaching package: &#39;DelayedArray&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
-## 
-##     colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     aperm, apply, rowsum</code></pre>
-<pre><code>## Loading required package: HDF5Array</code></pre>
-<pre><code>## Loading required package: rhdf5</code></pre>
-<pre class="r"><code>tenx_pbmc3k &lt;- TENxPBMCData(dataset=&quot;pbmc3k&quot;)</code></pre>
-<pre><code>## snapshotDate(): 2019-01-25</code></pre>
-<pre><code>## see ?TENxPBMCData and browseVignettes(&#39;TENxPBMCData&#39;) for documentation</code></pre>
-<pre><code>## downloading 0 resources</code></pre>
-<pre><code>## loading from cache 
-##     &#39;/Users/kevin//.ExperimentHub/1607&#39;</code></pre>
-<pre class="r"><code>tenx_pbmc3k</code></pre>
+<pre class="r"><code>library(TENxPBMCData)
+tenx_pbmc3k &lt;- TENxPBMCData(dataset=&quot;pbmc3k&quot;)
+colnames(tenx_pbmc3k) &lt;- paste0(&quot;Cell&quot;, seq_len(ncol(tenx_pbmc3k)))
+tenx_pbmc3k</code></pre>
 <pre><code>## class: SingleCellExperiment 
 ## dim: 32738 2700 
 ## metadata(0):
@@ -521,7 +460,7 @@ div.tocify {
 ## rownames(32738): ENSG00000243485 ENSG00000237613 ...
 ##   ENSG00000215616 ENSG00000215611
 ## rowData names(3): ENSEMBL_ID Symbol_TENx Symbol
-## colnames: NULL
+## colnames(2700): Cell1 Cell2 ... Cell2699 Cell2700
 ## colData names(11): Sample Barcode ... Individual Date_published
 ## reducedDimNames(0):
 ## spikeNames(0):</code></pre>
@@ -529,70 +468,22 @@ div.tocify {
 <div id="preparing-the-data" class="section level1">
 <h1>Preparing the data</h1>
 <p>Next, prepare a sparse matrix that emulates the first section of the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a>.</p>
-<pre class="r"><code>library(Matrix)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;Matrix&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:S4Vectors&#39;:
-## 
-##     expand</code></pre>
-<pre class="r"><code>pbmc.data &lt;- as(counts(tenx_pbmc3k), &quot;Matrix&quot;)
-pbmc.data &lt;- as(pbmc.data, &quot;dgTMatrix&quot;)
-colnames(pbmc.data) &lt;- paste0(&quot;Cell&quot;, seq_len(ncol(pbmc.data)))
-rownames(pbmc.data) &lt;- make.unique(rowData(tenx_pbmc3k)[, &quot;Symbol_TENx&quot;, drop=TRUE])</code></pre>
+<pre class="r"><code>library(Matrix)
+pbmc.data &lt;- as(counts(tenx_pbmc3k), &quot;Matrix&quot;)
+pbmc.data &lt;- as(pbmc.data, &quot;dgTMatrix&quot;)</code></pre>
 </div>
 <div id="seurat---guided-clustering-tutorial" class="section level1">
 <h1>Seurat - Guided Clustering Tutorial</h1>
 <p>From here on, follow the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> to the letter (code obtained on 2018-11-24).</p>
-<pre class="r"><code>library(Seurat)</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre><code>## Registered S3 methods overwritten by &#39;ggplot2&#39;:
-##   method         from 
-##   [.quosures     rlang
-##   c.quosures     rlang
-##   print.quosures rlang</code></pre>
-<pre><code>## Loading required package: cowplot</code></pre>
-<pre><code>## 
-## Attaching package: &#39;cowplot&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
-## 
-##     ggsave</code></pre>
-<pre><code>## Registered S3 method overwritten by &#39;R.oo&#39;:
-##   method        from       
-##   throw.default R.methodsS3</code></pre>
-<pre class="r"><code>library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:matrixStats&#39;:
-## 
-##     count</code></pre>
-<pre><code>## The following object is masked from &#39;package:Biobase&#39;:
-## 
-##     combine</code></pre>
-<pre><code>## The following objects are masked from &#39;package:GenomicRanges&#39;:
-## 
-##     intersect, setdiff, union</code></pre>
-<pre><code>## The following object is masked from &#39;package:GenomeInfoDb&#39;:
-## 
-##     intersect</code></pre>
-<pre><code>## The following objects are masked from &#39;package:IRanges&#39;:
-## 
-##     collapse, desc, intersect, setdiff, slice, union</code></pre>
-<pre><code>## The following objects are masked from &#39;package:S4Vectors&#39;:
-## 
-##     first, intersect, rename, setdiff, setequal, union</code></pre>
-<pre><code>## The following objects are masked from &#39;package:BiocGenerics&#39;:
-## 
-##     combine, intersect, setdiff, union</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code># Initialize the Seurat object with the raw (non-normalized data).  Keep all
+<pre class="r"><code>library(Seurat)
+library(dplyr)
+# Initialize the Seurat object with the raw (non-normalized data).  Keep all
 # genes expressed in &gt;= 3 cells (~0.1% of the data). Keep all cells with at
 # least 200 detected genes
-pbmc &lt;- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, project=&quot;10X_PBMC&quot;)</code></pre>
+pbmc &lt;- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, project=&quot;10X_PBMC&quot;)
+pbmc</code></pre>
+<pre><code>## An object of class seurat in project 10X_PBMC 
+##  13714 genes across 2700 samples.</code></pre>
 <pre class="r"><code># The number of genes and UMIs (nGene and nUMI) are automatically calculated
 # for every object by Seurat.  For non-UMI data, nUMI represents the sum of
 # the non-normalized values within a cell We calculate the percentage of
@@ -600,7 +491,8 @@ pbmc &lt;- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, pr
 # We use object@raw.data since this represents non-transformed and
 # non-log-normalized counts The % of UMI mapping to MT-genes is a common
 # scRNA-seq QC metric.
-mito.genes &lt;- grep(pattern=&quot;^MT-&quot;, x=rownames(x=pbmc@data), value=TRUE)
+mito.genes &lt;- subset(rowData(tenx_pbmc3k), grepl(&quot;^MT-&quot;, Symbol_TENx), &quot;ENSEMBL_ID&quot;, drop=TRUE)
+mito.genes &lt;- intersect(mito.genes, rownames(pbmc@raw.data))
 percent.mito &lt;- Matrix::colSums(pbmc@raw.data[mito.genes, ])/Matrix::colSums(pbmc@raw.data)
 
 # AddMetaData adds columns to object@meta.data, and is a great place to
@@ -633,72 +525,90 @@ pbmc &lt;- FilterCells(object=pbmc, subset.names=c(&quot;nGene&quot;, &quot;perc
 <pre class="r"><code>pbmc &lt;- ScaleData(object=pbmc, vars.to.regress=c(&quot;nUMI&quot;, &quot;percent.mito&quot;))</code></pre>
 <pre><code>## Regressing out: nUMI, percent.mito</code></pre>
 <pre><code>## 
-## Time Elapsed:  17.0594549179077 secs</code></pre>
+## Time Elapsed:  10.408212184906 secs</code></pre>
 <pre><code>## Scaling data matrix</code></pre>
 <pre class="r"><code>pbmc &lt;- RunPCA(object=pbmc, pc.genes=pbmc@var.genes, do.print=TRUE, pcs.print=1:5, 
     genes.print=5)</code></pre>
 <pre><code>## [1] &quot;PC1&quot;
-## [1] &quot;CST3&quot;   &quot;TYROBP&quot; &quot;FCN1&quot;   &quot;LST1&quot;   &quot;AIF1&quot;  
+## [1] &quot;ENSG00000101439&quot; &quot;ENSG00000011600&quot; &quot;ENSG00000085265&quot; &quot;ENSG00000204482&quot;
+## [5] &quot;ENSG00000204472&quot;
 ## [1] &quot;&quot;
-## [1] &quot;PTPRCAP&quot; &quot;IL32&quot;    &quot;LTB&quot;     &quot;CD2&quot;     &quot;CTSW&quot;   
+## [1] &quot;ENSG00000213402&quot; &quot;ENSG00000008517&quot; &quot;ENSG00000227507&quot; &quot;ENSG00000116824&quot;
+## [5] &quot;ENSG00000172543&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC2&quot;
-## [1] &quot;NKG7&quot; &quot;GZMB&quot; &quot;PRF1&quot; &quot;CST7&quot; &quot;GZMA&quot;
+## [1] &quot;ENSG00000105374&quot; &quot;ENSG00000100453&quot; &quot;ENSG00000180644&quot; &quot;ENSG00000077984&quot;
+## [5] &quot;ENSG00000145649&quot;
 ## [1] &quot;&quot;
-## [1] &quot;CD79A&quot;    &quot;MS4A1&quot;    &quot;HLA-DQA1&quot; &quot;TCL1A&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000156738&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000100721&quot;
+## [5] &quot;ENSG00000179344&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC3&quot;
-## [1] &quot;PF4&quot;   &quot;PPBP&quot;  &quot;SDPR&quot;  &quot;SPARC&quot; &quot;GNG11&quot;
+## [1] &quot;ENSG00000163737&quot; &quot;ENSG00000163736&quot; &quot;ENSG00000168497&quot; &quot;ENSG00000113140&quot;
+## [5] &quot;ENSG00000127920&quot;
 ## [1] &quot;&quot;
-## [1] &quot;CYBA&quot;     &quot;HLA-DPA1&quot; &quot;HLA-DPB1&quot; &quot;HLA-DRB1&quot; &quot;CD37&quot;    
+## [1] &quot;ENSG00000051523&quot; &quot;ENSG00000231389&quot; &quot;ENSG00000223865&quot; &quot;ENSG00000196126&quot;
+## [5] &quot;ENSG00000104894&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC4&quot;
-## [1] &quot;IL32&quot;   &quot;GIMAP7&quot; &quot;AQP3&quot;   &quot;FYB&quot;    &quot;MAL&quot;   
+## [1] &quot;ENSG00000008517&quot; &quot;ENSG00000179144&quot; &quot;ENSG00000165272&quot; &quot;ENSG00000082074&quot;
+## [5] &quot;ENSG00000172005&quot;
 ## [1] &quot;&quot;
-## [1] &quot;CD79A&quot;    &quot;HLA-DQA1&quot; &quot;CD79B&quot;    &quot;MS4A1&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000007312&quot; &quot;ENSG00000156738&quot;
+## [5] &quot;ENSG00000179344&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC5&quot;
-## [1] &quot;FCER1A&quot;  &quot;LGALS2&quot;  &quot;MS4A6A&quot;  &quot;S100A8&quot;  &quot;CLEC10A&quot;
+## [1] &quot;ENSG00000179639&quot; &quot;ENSG00000100079&quot; &quot;ENSG00000110077&quot; &quot;ENSG00000143546&quot;
+## [5] &quot;ENSG00000132514&quot;
 ## [1] &quot;&quot;
-## [1] &quot;FCGR3A&quot;        &quot;CTD-2006K23.1&quot; &quot;IFITM3&quot;        &quot;ABI3&quot;         
-## [5] &quot;CEBPB&quot;        
+## [1] &quot;ENSG00000203747&quot; &quot;ENSG00000261222&quot; &quot;ENSG00000142089&quot; &quot;ENSG00000108798&quot;
+## [5] &quot;ENSG00000172216&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;</code></pre>
 <pre class="r"><code># Examine and visualize PCA results a few different ways
 PrintPCA(object=pbmc, pcs.print=1:5, genes.print=5, use.full=FALSE)</code></pre>
 <pre><code>## [1] &quot;PC1&quot;
-## [1] &quot;CST3&quot;   &quot;TYROBP&quot; &quot;FCN1&quot;   &quot;LST1&quot;   &quot;AIF1&quot;  
+## [1] &quot;ENSG00000101439&quot; &quot;ENSG00000011600&quot; &quot;ENSG00000085265&quot; &quot;ENSG00000204482&quot;
+## [5] &quot;ENSG00000204472&quot;
 ## [1] &quot;&quot;
-## [1] &quot;PTPRCAP&quot; &quot;IL32&quot;    &quot;LTB&quot;     &quot;CD2&quot;     &quot;CTSW&quot;   
+## [1] &quot;ENSG00000213402&quot; &quot;ENSG00000008517&quot; &quot;ENSG00000227507&quot; &quot;ENSG00000116824&quot;
+## [5] &quot;ENSG00000172543&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC2&quot;
-## [1] &quot;NKG7&quot; &quot;GZMB&quot; &quot;PRF1&quot; &quot;CST7&quot; &quot;GZMA&quot;
+## [1] &quot;ENSG00000105374&quot; &quot;ENSG00000100453&quot; &quot;ENSG00000180644&quot; &quot;ENSG00000077984&quot;
+## [5] &quot;ENSG00000145649&quot;
 ## [1] &quot;&quot;
-## [1] &quot;CD79A&quot;    &quot;MS4A1&quot;    &quot;HLA-DQA1&quot; &quot;TCL1A&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000156738&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000100721&quot;
+## [5] &quot;ENSG00000179344&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC3&quot;
-## [1] &quot;PF4&quot;   &quot;PPBP&quot;  &quot;SDPR&quot;  &quot;SPARC&quot; &quot;GNG11&quot;
+## [1] &quot;ENSG00000163737&quot; &quot;ENSG00000163736&quot; &quot;ENSG00000168497&quot; &quot;ENSG00000113140&quot;
+## [5] &quot;ENSG00000127920&quot;
 ## [1] &quot;&quot;
-## [1] &quot;CYBA&quot;     &quot;HLA-DPA1&quot; &quot;HLA-DPB1&quot; &quot;HLA-DRB1&quot; &quot;CD37&quot;    
+## [1] &quot;ENSG00000051523&quot; &quot;ENSG00000231389&quot; &quot;ENSG00000223865&quot; &quot;ENSG00000196126&quot;
+## [5] &quot;ENSG00000104894&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC4&quot;
-## [1] &quot;IL32&quot;   &quot;GIMAP7&quot; &quot;AQP3&quot;   &quot;FYB&quot;    &quot;MAL&quot;   
+## [1] &quot;ENSG00000008517&quot; &quot;ENSG00000179144&quot; &quot;ENSG00000165272&quot; &quot;ENSG00000082074&quot;
+## [5] &quot;ENSG00000172005&quot;
 ## [1] &quot;&quot;
-## [1] &quot;CD79A&quot;    &quot;HLA-DQA1&quot; &quot;CD79B&quot;    &quot;MS4A1&quot;    &quot;HLA-DQB1&quot;
+## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000007312&quot; &quot;ENSG00000156738&quot;
+## [5] &quot;ENSG00000179344&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;PC5&quot;
-## [1] &quot;FCER1A&quot;  &quot;LGALS2&quot;  &quot;MS4A6A&quot;  &quot;S100A8&quot;  &quot;CLEC10A&quot;
+## [1] &quot;ENSG00000179639&quot; &quot;ENSG00000100079&quot; &quot;ENSG00000110077&quot; &quot;ENSG00000143546&quot;
+## [5] &quot;ENSG00000132514&quot;
 ## [1] &quot;&quot;
-## [1] &quot;FCGR3A&quot;        &quot;CTD-2006K23.1&quot; &quot;IFITM3&quot;        &quot;ABI3&quot;         
-## [5] &quot;CEBPB&quot;        
+## [1] &quot;ENSG00000203747&quot; &quot;ENSG00000261222&quot; &quot;ENSG00000142089&quot; &quot;ENSG00000108798&quot;
+## [5] &quot;ENSG00000172216&quot;
 ## [1] &quot;&quot;
 ## [1] &quot;&quot;</code></pre>
 <pre class="r"><code>VizPCA(object=pbmc, pcs.use=1:2)</code></pre>
@@ -742,7 +652,7 @@ if (FALSE) {
 pbmc &lt;- FindClusters(object=pbmc, reduction.type=&quot;pca&quot;, dims.use=1:10, 
     resolution=0.6, print.output=0, save.SNN=TRUE)</code></pre>
 <pre class="r"><code>PrintFindClustersParams(object=pbmc)</code></pre>
-<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-02-04 20:28:03
+<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-02-18 21:26:24
 ## =============================================================================
 ## Resolution: 0.6
 ## -----------------------------------------------------------------------------
@@ -761,20 +671,22 @@ TSNEPlot(object=pbmc)</code></pre>
 <p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 <p>Save the <code>seurat</code> object</p>
 <pre class="r"><code>saveRDS(pbmc, file=&quot;pbmc3k_tutorial.rds&quot;)</code></pre>
-<p>Save the equivalent <code>SingleCellExperiment</code> object</p>
-<pre class="r"><code>sce_pbmc &lt;- as.SingleCellExperiment(pbmc)
-saveRDS(sce_pbmc, file=&quot;pbmc3k_tutorial.sce.rds&quot;)</code></pre>
-<p>Note that the marker genes used to later assign cell identities to the various clusters are listed below</p>
-<pre class="r"><code>## Markers and cell type annotations by cluster
-# Cluster ID    Markers         Cell Type
-# 0             IL7R            CD4 T cells
-# 1             CD14, LYZ       CD14+ Monocytes
-# 2             MS4A1           B cells
-# 3             CD8A            CD8 T cells
-# 4             FCGR3A, MS4A7   FCGR3A+ Monocytes
-# 5             GNLY, NKG7      NK cells
-# 6             FCER1A, CST3    Dendritic Cells
-# 7             PPBP            Megakaryocytes</code></pre>
+<p>Save the original <code>SingleCellExperiment</code> object, after:</p>
+<ul>
+<li>removing the cells excluded by quality metrics during the Seurat workflow</li>
+<li>adding the cluster assignments</li>
+<li>adding the PCA and t-SNE dimensionality reduction results</li>
+</ul>
+<pre class="r"><code>tenx_pbmc3k &lt;- tenx_pbmc3k[, pbmc@cell.names]
+colData(tenx_pbmc3k)[[&quot;seurat.ident&quot;]] &lt;- as.factor(pbmc@ident)
+reducedDim(tenx_pbmc3k, &quot;PCA&quot;) &lt;- pbmc@dr$pca@cell.embeddings
+reducedDim(tenx_pbmc3k, &quot;TSNE&quot;) &lt;- pbmc@dr$tsne@cell.embeddings
+colnames(tenx_pbmc3k) &lt;- NULL # remove the dummy cell names before exporting
+saveRDS(tenx_pbmc3k, file=&quot;pbmc3k_tutorial.sce.rds&quot;)</code></pre>
+<p>Export the cluster identity vector. It will be included in the <em><a href="https://github.com/kevinrue/hancock">hancock</a></em> package, and mapped using the dummy cell names defined at the start of this notebook.</p>
+<pre class="r"><code>ident &lt;- pbmc@ident
+names(ident) &lt;- pbmc@cell.names
+saveRDS(ident, &quot;pbmc3k.ident.rds&quot;)</code></pre>
 </div>
 <div id="see-also" class="section level1">
 <h1>See also</h1>

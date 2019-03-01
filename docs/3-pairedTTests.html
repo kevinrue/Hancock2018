@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kevin Rue-Albrecht" />
+
+<meta name="date" content="2019-03-01" />
+
+<title>Applying the xCellData Signatures to positive markers</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<link rel="stylesheet" href="www/scroll.css">
+
+<script src="www/scroll.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">hancock</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Seurat PBMC 3k
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">Data</a>
+    </li>
+    <li>
+      <a href="1-proportion_signature.html">Applying signatures</a>
+    </li>
+    <li>
+      <a href="2-learn-signatures.html">Learning signatures</a>
+    </li>
+    <li>
+      <a href="3-pairedTTests.html">Gene set enrichment analysis of positive markers</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Applying the xCellData Signatures to positive markers</h1>
+<h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
+<h4 class="date"><em>1 March 2019</em></h4>
+
+</div>
+
+
+<div id="example-data-set" class="section level1">
+<h1>Example data set</h1>
+<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed in a <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">previous vignette</a>.</p>
+<pre class="r"><code>library(SingleCellExperiment)
+sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
+sce</code></pre>
+<pre><code>## class: SingleCellExperiment 
+## dim: 32738 2638 
+## metadata(0):
+## assays(1): counts
+## rownames(32738): ENSG00000243485 ENSG00000237613 ...
+##   ENSG00000215616 ENSG00000215611
+## rowData names(3): ENSEMBL_ID Symbol_TENx Symbol
+## colnames: NULL
+## colData names(12): Sample Barcode ... Date_published seurat.ident
+## reducedDimNames(2): PCA TSNE
+## spikeNames(0):</code></pre>
+</div>
+<div id="run-paired-t-tests-to-identify-markers" class="section level1">
+<h1>Run paired t-tests to identify markers</h1>
+<p>First, we normalize and log-transform the count data.</p>
+<pre class="r"><code>library(scran)
+library(scater)
+sce &lt;- computeSumFactors(sce)
+sce &lt;- normalize(sce)
+sce</code></pre>
+<pre><code>## class: SingleCellExperiment 
+## dim: 32738 2638 
+## metadata(1): log.exprs.offset
+## assays(2): counts logcounts
+## rownames(32738): ENSG00000243485 ENSG00000237613 ...
+##   ENSG00000215616 ENSG00000215611
+## rowData names(3): ENSEMBL_ID Symbol_TENx Symbol
+## colnames: NULL
+## colData names(12): Sample Barcode ... Date_published seurat.ident
+## reducedDimNames(2): PCA TSNE
+## spikeNames(0):</code></pre>
+<p>In this example, we look for <em>positive</em> markers. Namely, up-regulated genes in each cluster relative to all other clusters.</p>
+<pre class="r"><code>library(scran)
+out &lt;- findMarkers(sce, clusters=sce$seurat.ident, direction=&quot;up&quot;, lfc=1)
+out</code></pre>
+<pre><code>## DataFrameList of length 8
+## names(8): 0 1 2 3 4 5 6 7</code></pre>
+<p>The result <code>out</code> is a list of <code>DataFrame</code>. For each cluster, the log fold-change against every other cluster is reported, along with a combined p-value and FDR.</p>
+<pre class="r"><code>colnames(out[[1]])</code></pre>
+<pre><code>##  [1] &quot;Top&quot;     &quot;p.value&quot; &quot;FDR&quot;     &quot;logFC.1&quot; &quot;logFC.2&quot; &quot;logFC.3&quot; &quot;logFC.4&quot;
+##  [8] &quot;logFC.5&quot; &quot;logFC.6&quot; &quot;logFC.7&quot;</code></pre>
+</div>
+<div id="obtain-gene-signatures-for-relevant-cell-types" class="section level1">
+<h1>Obtain gene signatures for relevant cell types</h1>
+<div id="load-xcelldata" class="section level2">
+<h2>Load xCellData</h2>
+<p>This package contains published gene signatures for a number of cell types.</p>
+<pre class="r"><code>library(xCellData)
+library(unisets)
+xcell &lt;- xCellData()
+xcell</code></pre>
+<pre><code>## BaseSets with 20803 relations between 5079 elements and 489 sets
+##      element          set relationData elementData
+##   &lt;IdVector&gt;   &lt;IdVector&gt;  &lt;DataFrame&gt; &lt;DataFrame&gt;
+## 1       C1QA   aDC_HPCA_1                         
+## 2       C1QB   aDC_HPCA_1                         
+## 3      CCL13   aDC_HPCA_1                         
+## 4      CCL17   aDC_HPCA_1                         
+## 5      CCL19   aDC_HPCA_1                         
+##          ...          ...          ...         ...
+## 1      IL2RA Tregs_HPCA_3                         
+## 2      KCNA2 Tregs_HPCA_3                         
+## 3      LAIR2 Tregs_HPCA_3                         
+## 4     MCF2L2 Tregs_HPCA_3                         
+## 5       RGS1 Tregs_HPCA_3                         
+##                                     setData
+##                                 &lt;DataFrame&gt;
+## 1 https://doi.org/10.1186/s13059-017-1349-1
+## 2 https://doi.org/10.1186/s13059-017-1349-1
+## 3 https://doi.org/10.1186/s13059-017-1349-1
+## 4 https://doi.org/10.1186/s13059-017-1349-1
+## 5 https://doi.org/10.1186/s13059-017-1349-1
+##                                         ...
+## 1 https://doi.org/10.1186/s13059-017-1349-1
+## 2 https://doi.org/10.1186/s13059-017-1349-1
+## 3 https://doi.org/10.1186/s13059-017-1349-1
+## 4 https://doi.org/10.1186/s13059-017-1349-1
+## 5 https://doi.org/10.1186/s13059-017-1349-1</code></pre>
+</div>
+<div id="prepare-annotations-for-the-analysis" class="section level2">
+<h2>Prepare annotations for the analysis</h2>
+<p>In this vignette, we are about to use the <em><a href="https://bioconductor.org/packages/3.9/clusterProfiler">clusterProfiler</a></em> package to compute the enrichment of published cell type signatures among sets of genes up-regulated in each cluster. To do so, we need to match the <a href="https://www.ensembl.org/index.html">ensembl</a> gene identifiers used in the PBMC data set to the <a href="https://www.genenames.org">gene symbols</a> used in the published cell type gene signatures.</p>
+<p>First, we use the <em><a href="https://bioconductor.org/packages/3.9/org.Hs.eg.db">org.Hs.eg.db</a></em> to convert the <em><a href="https://github.com/kevinrue/xCellData">xCellData</a></em> published signatures from gene symbols to <a href="https://www.ensembl.org/index.html">ensembl</a> gene identifiers.</p>
+<pre class="r"><code>library(org.Hs.eg.db)
+TERM2GENE &lt;- as.data.frame(xcell)[, c(&quot;set&quot;, &quot;element&quot;)]
+TERM2GENE$element &lt;- mapIds(org.Hs.eg.db, TERM2GENE$element, &quot;ENSEMBL&quot;, &quot;SYMBOL&quot;)</code></pre>
+<p>The <em><a href="https://bioconductor.org/packages/3.9/clusterProfiler">clusterProfiler</a></em> also requires a table mapping term identifiers to their name. In this example, each signature identifier is already a descriptive name, so we provide empty strings.</p>
+<pre class="r"><code>TERM2NAME &lt;- data.frame(
+    id = ids(setData(xcell)),
+    name = rep(&quot;&quot;, nSets(xcell))
+)</code></pre>
+</div>
+</div>
+<div id="run-the-analysis" class="section level1">
+<h1>Run the analysis</h1>
+<p>In this example, we apply Gene Set Enrichment Analysis (GSEA) on the lists of genes ranked by decreasing detection average log-fold change between each cluster and all other clusters. Below, we display the 2 most signicantly enriched cell type gene signature for each cluster. Note that for some clusters, none of the signatures reached signifcance.</p>
+<pre class="r"><code>library(clusterProfiler)
+runGSEA &lt;- function(clusterName, threshold=0, top=10) {
+    x &lt;- out[[clusterName]]
+    x_lfc_colnames &lt;- grep(&quot;^logFC\\.&quot;, colnames(x))
+    x_rowmeans &lt;- rowMeans(as.matrix(x[, x_lfc_colnames]))
+    x_rowmeans &lt;- sort(x_rowmeans, decreasing = TRUE)
+    x_rowmeans &lt;- x_rowmeans[x_rowmeans &gt; threshold]
+    y = GSEA(x_rowmeans, TERM2GENE=TERM2GENE, TERM2NAME=TERM2NAME, pvalueCutoff=1, verbose = FALSE)
+    y &lt;- as.data.frame(y)
+    y &lt;- head(y, top)
+    y &lt;- cbind(cluster = clusterName, y)
+    y
+}
+resList &lt;- lapply(levels(sce$seurat.ident), runGSEA, threshold=0, top=2)
+res &lt;- do.call(rbind, resList)
+res &lt;- as.data.frame(res)
+show_columns &lt;- setdiff(colnames(res), &quot;core_enrichment&quot;)
+kable(res[, show_columns])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">cluster</th>
+<th align="left">ID</th>
+<th align="left">Description</th>
+<th align="right">setSize</th>
+<th align="right">enrichmentScore</th>
+<th align="right">NES</th>
+<th align="right">pvalue</th>
+<th align="right">p.adjust</th>
+<th align="right">qvalues</th>
+<th align="right">rank</th>
+<th align="left">leading_edge</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CD4+ memory T-cells_FANTOM_1</td>
+<td align="left">0</td>
+<td align="left">CD4+ memory T-cells_FANTOM_1</td>
+<td align="left"></td>
+<td align="right">114</td>
+<td align="right">0.8572932</td>
+<td align="right">1.220449</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0834166</td>
+<td align="right">0.0778169</td>
+<td align="right">552</td>
+<td align="left">tags=40%, list=8%, signal=38%</td>
+</tr>
+<tr class="even">
+<td>CD4+ naive T-cells_IRIS_3</td>
+<td align="left">0</td>
+<td align="left">CD4+ naive T-cells_IRIS_3</td>
+<td align="left"></td>
+<td align="right">35</td>
+<td align="right">0.9243340</td>
+<td align="right">1.342814</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0834166</td>
+<td align="right">0.0778169</td>
+<td align="right">219</td>
+<td align="left">tags=37%, list=3%, signal=36%</td>
+</tr>
+<tr class="odd">
+<td>Fibroblasts_FANTOM_1</td>
+<td align="left">1</td>
+<td align="left">Fibroblasts_FANTOM_1</td>
+<td align="left"></td>
+<td align="right">47</td>
+<td align="right">0.8782698</td>
+<td align="right">1.273470</td>
+<td align="right">0.0029970</td>
+<td align="right">0.1225000</td>
+<td align="right">0.1114035</td>
+<td align="right">170</td>
+<td align="left">tags=11%, list=3%, signal=10%</td>
+</tr>
+<tr class="even">
+<td>Fibroblasts_HPCA_3</td>
+<td align="left">1</td>
+<td align="left">Fibroblasts_HPCA_3</td>
+<td align="left"></td>
+<td align="right">47</td>
+<td align="right">0.8782698</td>
+<td align="right">1.273470</td>
+<td align="right">0.0029970</td>
+<td align="right">0.1225000</td>
+<td align="right">0.1114035</td>
+<td align="right">170</td>
+<td align="left">tags=11%, list=3%, signal=10%</td>
+</tr>
+<tr class="odd">
+<td>B-cells_NOVERSHTERN_2</td>
+<td align="left">2</td>
+<td align="left">B-cells_NOVERSHTERN_2</td>
+<td align="left"></td>
+<td align="right">64</td>
+<td align="right">0.8886044</td>
+<td align="right">1.377215</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0379620</td>
+<td align="right">0.0297071</td>
+<td align="right">459</td>
+<td align="left">tags=53%, list=8%, signal=49%</td>
+</tr>
+<tr class="even">
+<td>B-cells_NOVERSHTERN_3</td>
+<td align="left">2</td>
+<td align="left">B-cells_NOVERSHTERN_3</td>
+<td align="left"></td>
+<td align="right">39</td>
+<td align="right">0.9098862</td>
+<td align="right">1.412122</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0379620</td>
+<td align="right">0.0297071</td>
+<td align="right">361</td>
+<td align="left">tags=67%, list=7%, signal=63%</td>
+</tr>
+<tr class="odd">
+<td>CD8+ Tem_BLUEPRINT_2</td>
+<td align="left">3</td>
+<td align="left">CD8+ Tem_BLUEPRINT_2</td>
+<td align="left"></td>
+<td align="right">108</td>
+<td align="right">0.8560173</td>
+<td align="right">1.485580</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0369146</td>
+<td align="right">0.0268716</td>
+<td align="right">590</td>
+<td align="left">tags=44%, list=9%, signal=40%</td>
+</tr>
+<tr class="even">
+<td>CD8+ Tem_BLUEPRINT_3</td>
+<td align="left">3</td>
+<td align="left">CD8+ Tem_BLUEPRINT_3</td>
+<td align="left"></td>
+<td align="right">56</td>
+<td align="right">0.8932986</td>
+<td align="right">1.538936</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0369146</td>
+<td align="right">0.0268716</td>
+<td align="right">499</td>
+<td align="left">tags=54%, list=8%, signal=50%</td>
+</tr>
+<tr class="odd">
+<td>aDC_IRIS_2</td>
+<td align="left">4</td>
+<td align="left">aDC_IRIS_2</td>
+<td align="left"></td>
+<td align="right">96</td>
+<td align="right">0.7844809</td>
+<td align="right">1.264898</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0351648</td>
+<td align="right">0.0309165</td>
+<td align="right">819</td>
+<td align="left">tags=34%, list=13%, signal=30%</td>
+</tr>
+<tr class="even">
+<td>Monocytes_FANTOM_1</td>
+<td align="left">4</td>
+<td align="left">Monocytes_FANTOM_1</td>
+<td align="left"></td>
+<td align="right">65</td>
+<td align="right">0.8449235</td>
+<td align="right">1.357312</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0351648</td>
+<td align="right">0.0309165</td>
+<td align="right">486</td>
+<td align="left">tags=43%, list=7%, signal=40%</td>
+</tr>
+<tr class="odd">
+<td>CD8+ Tcm_HPCA_3</td>
+<td align="left">5</td>
+<td align="left">CD8+ Tcm_HPCA_3</td>
+<td align="left"></td>
+<td align="right">33</td>
+<td align="right">0.8550313</td>
+<td align="right">1.570160</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0113482</td>
+<td align="right">0.0087363</td>
+<td align="right">634</td>
+<td align="left">tags=39%, list=9%, signal=36%</td>
+</tr>
+<tr class="even">
+<td>CD8+ Tem_BLUEPRINT_21</td>
+<td align="left">5</td>
+<td align="left">CD8+ Tem_BLUEPRINT_2</td>
+<td align="left"></td>
+<td align="right">106</td>
+<td align="right">0.8379398</td>
+<td align="right">1.575125</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0113482</td>
+<td align="right">0.0087363</td>
+<td align="right">444</td>
+<td align="left">tags=31%, list=6%, signal=30%</td>
+</tr>
+<tr class="odd">
+<td>B-cells_NOVERSHTERN_21</td>
+<td align="left">6</td>
+<td align="left">B-cells_NOVERSHTERN_2</td>
+<td align="left"></td>
+<td align="right">21</td>
+<td align="right">0.8643003</td>
+<td align="right">1.620108</td>
+<td align="right">0.0010040</td>
+<td align="right">0.0721303</td>
+<td align="right">0.0628640</td>
+<td align="right">110</td>
+<td align="left">tags=19%, list=2%, signal=19%</td>
+</tr>
+<tr class="even">
+<td>Memory B-cells_BLUEPRINT_1</td>
+<td align="left">6</td>
+<td align="left">Memory B-cells_BLUEPRINT_1</td>
+<td align="left"></td>
+<td align="right">16</td>
+<td align="right">0.8856394</td>
+<td align="right">1.636391</td>
+<td align="right">0.0010081</td>
+<td align="right">0.0721303</td>
+<td align="right">0.0628640</td>
+<td align="right">98</td>
+<td align="left">tags=19%, list=2%, signal=18%</td>
+</tr>
+<tr class="odd">
+<td>Platelets_HPCA_2</td>
+<td align="left">7</td>
+<td align="left">Platelets_HPCA_2</td>
+<td align="left"></td>
+<td align="right">74</td>
+<td align="right">0.7431587</td>
+<td align="right">1.366667</td>
+<td align="right">0.0009990</td>
+<td align="right">0.0809191</td>
+<td align="right">0.0788685</td>
+<td align="right">341</td>
+<td align="left">tags=46%, list=15%, signal=40%</td>
+</tr>
+<tr class="even">
+<td>Astrocytes_FANTOM_1</td>
+<td align="left">7</td>
+<td align="left">Astrocytes_FANTOM_1</td>
+<td align="left"></td>
+<td align="right">18</td>
+<td align="right">0.8523369</td>
+<td align="right">1.490119</td>
+<td align="right">0.0030120</td>
+<td align="right">0.1219880</td>
+<td align="right">0.1188966</td>
+<td align="right">98</td>
+<td align="left">tags=39%, list=4%, signal=38%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="see-also" class="section level1">
+<h1>See also</h1>
+<ul>
+<li><a href="1-proportion_signature.html">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</a></li>
+<li><a href="2-learn-signatures.html">Learning Gene Signatures from the Seurat PBMC 3k Tutorial</a></li>
+</ul>
+<button onclick="topFunction()" id="myBtn" title="Go to top">
+Back to top
+</button>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

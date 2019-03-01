@@ -1,0 +1,124 @@
+---
+title: "Applying the xCellData Signatures to positive markers"
+author: "Kevin Rue-Albrecht"
+date: "`r BiocStyle::doc_date()`"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(cache=FALSE)
+suppressPackageStartupMessages({
+    library(BiocStyle)
+    library(knitr)
+})
+```
+
+# Example data set
+
+First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed in a [previous vignette](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
+
+```{r, message=FALSE}
+library(SingleCellExperiment)
+sce <- readRDS("pbmc3k_tutorial.sce.rds")
+sce
+```
+
+# Run paired t-tests to identify markers
+
+First, we normalize and log-transform the count data.
+
+```{r, message=FALSE}
+library(scran)
+library(scater)
+sce <- computeSumFactors(sce)
+sce <- normalize(sce)
+sce
+```
+
+In this example, we look for _positive_ markers.
+Namely, up-regulated genes in each cluster relative to all other clusters.
+
+```{r, message=FALSE}
+library(scran)
+out <- findMarkers(sce, clusters=sce$seurat.ident, direction="up", lfc=1)
+out
+```
+
+The result `out` is a list of `DataFrame`.
+For each cluster, the log fold-change against every other cluster is reported, along with a combined p-value and FDR.
+
+```{r}
+colnames(out[[1]])
+```
+
+# Obtain gene signatures for relevant cell types
+
+## Load xCellData
+
+This package contains published gene signatures for a number of cell types.
+
+```{r, message=FALSE}
+library(xCellData)
+library(unisets)
+xcell <- xCellData()
+xcell
+```
+
+## Prepare annotations for the analysis
+
+In this vignette, we are about to use the `r Biocpkg("clusterProfiler")` package to compute the enrichment of published cell type signatures among sets of genes up-regulated in each cluster.
+To do so, we need to match the [ensembl](https://www.ensembl.org/index.html) gene identifiers used in the PBMC data set to the [gene symbols](https://www.genenames.org) used in the published cell type gene signatures.
+
+First, we use the `r Biocpkg("org.Hs.eg.db")` to convert the `r Githubpkg("kevinrue/xCellData")` published signatures from gene symbols to [ensembl](https://www.ensembl.org/index.html) gene identifiers.
+
+```{r, message=FALSE}
+library(org.Hs.eg.db)
+TERM2GENE <- as.data.frame(xcell)[, c("set", "element")]
+TERM2GENE$element <- mapIds(org.Hs.eg.db, TERM2GENE$element, "ENSEMBL", "SYMBOL")
+```
+
+The `r Biocpkg("clusterProfiler")` also requires a table mapping term identifiers to their name.
+In this example, each signature identifier is already a descriptive name, so we provide empty strings.
+
+```{r}
+TERM2NAME <- data.frame(
+    id = ids(setData(xcell)),
+    name = rep("", nSets(xcell))
+)
+```
+
+# Run the analysis
+
+In this example, we apply Gene Set Enrichment Analysis (GSEA) on the lists of genes ranked by decreasing detection average log-fold change between each cluster and all other clusters.
+Below, we display the 2 most signicantly enriched cell type gene signature for each cluster.
+Note that for some clusters, none of the signatures reached signifcance.
+
+```{r, message=FALSE, warning=FALSE}
+library(clusterProfiler)
+runGSEA <- function(clusterName, threshold=0, top=10) {
+    x <- out[[clusterName]]
+    x_lfc_colnames <- grep("^logFC\\.", colnames(x))
+    x_rowmeans <- rowMeans(as.matrix(x[, x_lfc_colnames]))
+    x_rowmeans <- sort(x_rowmeans, decreasing = TRUE)
+    x_rowmeans <- x_rowmeans[x_rowmeans > threshold]
+    y = GSEA(x_rowmeans, TERM2GENE=TERM2GENE, TERM2NAME=TERM2NAME, pvalueCutoff=1, verbose = FALSE)
+    y <- as.data.frame(y)
+    y <- head(y, top)
+    y <- cbind(cluster = clusterName, y)
+    y
+}
+resList <- lapply(levels(sce$seurat.ident), runGSEA, threshold=0, top=2)
+res <- do.call(rbind, resList)
+res <- as.data.frame(res)
+show_columns <- setdiff(colnames(res), "core_enrichment")
+kable(res[, show_columns])
+```
+
+# See also
+
+- [Applying Gene Signatures to the Seurat PBMC 3k Tutorial](1-proportion_signature.html)
+- [Learning Gene Signatures from the Seurat PBMC 3k Tutorial](2-learn-signatures.html)
+
+<button onclick="topFunction()" id="myBtn" title="Go to top">Back to top</button>

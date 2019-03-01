@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-18" />
+<meta name="date" content="2019-03-01" />
 
 <title>About This Project</title>
 
@@ -410,6 +410,9 @@ div.tocify {
     <li>
       <a href="2-learn-signatures.html">Learning signatures</a>
     </li>
+    <li>
+      <a href="3-pairedTTests.html">Gene set enrichment analysis of positive markers</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -437,7 +440,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">About This Project</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>18 February 2019</em></h4>
+<h4 class="date"><em>1 March 2019</em></h4>
 
 </div>
 
@@ -462,6 +465,338 @@ div.tocify {
 ##     note = {https://github.com/kevinrue/hancock,
 ## http://kevinrue.github.io/hancock},
 ##   }</code></pre>
+</div>
+<div id="session" class="section level1">
+<h1>Session</h1>
+<pre><code>## ─ Session info ──────────────────────────────────────────────────────────
+##  setting  value                                             
+##  version  R Under development (unstable) (2018-11-10 r75583)
+##  os       macOS Mojave 10.14.3                              
+##  system   x86_64, darwin15.6.0                              
+##  ui       X11                                               
+##  language (EN)                                              
+##  collate  en_GB.UTF-8                                       
+##  ctype    en_GB.UTF-8                                       
+##  tz       Europe/London                                     
+##  date     2019-03-01                                        
+## 
+## ─ Packages ──────────────────────────────────────────────────────────────
+##  package              * version   date       lib
+##  annotate               1.61.0    2018-10-30 [1]
+##  AnnotationDbi        * 1.45.0    2018-10-30 [1]
+##  assertthat             0.2.0     2017-04-11 [1]
+##  backports              1.1.3     2018-12-14 [1]
+##  beachmat               1.5.4     2019-01-24 [1]
+##  beeswarm               0.2.3     2016-04-25 [1]
+##  Biobase              * 2.43.1    2019-01-10 [1]
+##  BiocGenerics         * 0.29.1    2018-11-01 [1]
+##  BiocManager            1.30.4    2018-11-13 [1]
+##  BiocNeighbors          1.1.12    2019-02-27 [1]
+##  BiocParallel         * 1.17.17   2019-02-27 [1]
+##  BiocStyle            * 2.11.0    2018-10-30 [1]
+##  Biostrings             2.51.2    2019-01-05 [1]
+##  bit                    1.1-14    2018-05-29 [1]
+##  bit64                  0.9-7     2017-05-08 [1]
+##  bitops                 1.0-6     2013-08-17 [1]
+##  blob                   1.1.1     2018-03-25 [1]
+##  callr                  3.1.1     2018-12-21 [1]
+##  circlize               0.4.5     2018-11-21 [1]
+##  cli                    1.0.1     2018-09-25 [1]
+##  clusterProfiler      * 3.11.1    2019-02-14 [1]
+##  colorspace             1.4-0     2019-01-13 [1]
+##  ComplexHeatmap         1.99.5    2019-01-22 [1]
+##  cowplot              * 0.9.4     2019-01-08 [1]
+##  crayon                 1.3.4     2017-09-16 [1]
+##  data.table             1.12.0    2019-01-13 [1]
+##  DBI                    1.0.0     2018-05-02 [1]
+##  DelayedArray         * 0.9.8     2019-01-30 [1]
+##  DelayedMatrixStats   * 1.5.2     2019-01-30 [1]
+##  desc                   1.2.0     2018-05-01 [1]
+##  devtools               2.0.1     2018-10-26 [1]
+##  digest                 0.6.18    2018-10-10 [1]
+##  DO.db                  2.9       2018-11-23 [1]
+##  DOSE                   3.9.3     2019-01-15 [1]
+##  dplyr                  0.8.0.1   2019-02-15 [1]
+##  dynamicTreeCut         1.63-1    2016-03-11 [1]
+##  edgeR                  3.25.3    2019-01-02 [1]
+##  enrichplot             1.3.2     2019-01-10 [1]
+##  europepmc              0.3       2018-04-20 [1]
+##  evaluate               0.13      2019-02-12 [1]
+##  farver                 1.1.0     2018-11-20 [1]
+##  fastmatch              1.1-0     2017-01-28 [1]
+##  fgsea                  1.9.4     2019-02-03 [1]
+##  fs                     1.2.6     2018-08-23 [1]
+##  GeneSet                0.0.1     2019-02-03 [1]
+##  GenomeInfoDb         * 1.19.2    2019-02-12 [1]
+##  GenomeInfoDbData       1.2.0     2018-11-11 [1]
+##  GenomicAlignments      1.19.1    2019-01-05 [1]
+##  GenomicRanges        * 1.35.1    2018-11-10 [1]
+##  GetoptLong             0.1.7     2018-06-10 [1]
+##  ggbeeswarm             0.6.0     2017-08-07 [1]
+##  ggforce                0.1.3     2018-07-07 [1]
+##  ggplot2              * 3.1.0     2018-10-25 [1]
+##  ggplotify              0.0.3     2018-08-03 [1]
+##  ggraph                 1.0.2     2018-07-07 [1]
+##  ggrepel                0.8.0     2018-05-09 [1]
+##  ggridges               0.5.1     2018-09-27 [1]
+##  GlobalOptions          0.1.0     2018-06-09 [1]
+##  glue                   1.3.0     2018-07-17 [1]
+##  GO.db                  3.7.0     2018-11-23 [1]
+##  GOSemSim               2.9.1     2019-02-22 [1]
+##  graph                  1.61.0    2018-10-30 [1]
+##  gridExtra              2.3       2017-09-09 [1]
+##  gridGraphics           0.3-0     2018-04-03 [1]
+##  GSEABase               1.45.0    2018-10-30 [1]
+##  gtable                 0.2.0     2016-02-26 [1]
+##  hancock              * 0.99.0    2019-03-01 [1]
+##  HDF5Array            * 1.11.10   2018-12-14 [1]
+##  highr                  0.7       2018-06-09 [1]
+##  hms                    0.4.2     2018-03-10 [1]
+##  htmltools              0.3.6     2017-04-28 [1]
+##  httpuv                 1.4.5.1   2018-12-18 [1]
+##  httr                   1.4.0     2018-12-11 [1]
+##  igraph                 1.2.4     2019-02-13 [1]
+##  IRanges              * 2.17.4    2019-01-05 [1]
+##  jsonlite               1.6       2018-12-07 [1]
+##  knitr                * 1.21      2018-12-10 [1]
+##  labeling               0.3       2014-08-23 [1]
+##  later                  0.8.0     2019-02-11 [1]
+##  lattice                0.20-38   2018-11-04 [1]
+##  lazyeval               0.2.1     2017-10-29 [1]
+##  limma                  3.39.12   2019-02-15 [1]
+##  locfit                 1.5-9.1   2013-04-20 [1]
+##  magrittr               1.5       2014-11-22 [1]
+##  MASS                   7.3-51.1  2018-11-01 [1]
+##  Matrix                 1.2-15    2018-11-01 [1]
+##  matrixStats          * 0.54.0    2018-07-23 [1]
+##  memoise                1.1.0     2017-04-21 [1]
+##  mime                   0.6       2018-10-05 [1]
+##  munsell                0.5.0     2018-06-12 [1]
+##  org.Hs.eg.db         * 3.7.0     2018-11-11 [1]
+##  pillar                 1.3.1     2018-12-15 [1]
+##  pkgbuild               1.0.2     2018-10-16 [1]
+##  pkgconfig              2.0.2     2018-08-16 [1]
+##  pkgload                1.0.2     2018-10-29 [1]
+##  plyr                   1.8.4     2016-06-08 [1]
+##  prettyunits            1.0.2     2015-07-13 [1]
+##  processx               3.2.1     2018-12-05 [1]
+##  progress               1.2.0     2018-06-14 [1]
+##  promises               1.0.1     2018-04-13 [1]
+##  ps                     1.3.0     2018-12-21 [1]
+##  purrr                  0.3.0     2019-01-27 [1]
+##  qvalue                 2.15.0    2018-10-30 [1]
+##  R6                     2.4.0     2019-02-14 [1]
+##  RColorBrewer           1.1-2     2014-12-07 [1]
+##  Rcpp                   1.0.0     2018-11-07 [1]
+##  RCurl                  1.95-4.11 2018-07-15 [1]
+##  remotes                2.0.2     2018-10-30 [1]
+##  reshape2               1.4.3     2017-12-11 [1]
+##  rhdf5                * 2.27.12   2019-02-13 [1]
+##  Rhdf5lib               1.5.1     2018-11-20 [1]
+##  rintrojs               0.2.0     2017-07-04 [1]
+##  rjson                  0.2.20    2018-06-08 [1]
+##  rlang                  0.3.1     2019-01-08 [1]
+##  rmarkdown              1.11      2018-12-08 [1]
+##  rprojroot              1.3-2     2018-01-03 [1]
+##  Rsamtools              1.99.2    2019-02-14 [1]
+##  RSQLite                2.1.1     2018-05-06 [1]
+##  rtracklayer            1.43.2    2019-02-26 [1]
+##  rvcheck                0.1.3     2018-12-06 [1]
+##  S4Vectors            * 0.21.10   2019-01-18 [1]
+##  scales               * 1.0.0     2018-08-09 [1]
+##  scater               * 1.11.10   2019-01-17 [1]
+##  scran                * 1.11.20   2019-01-23 [1]
+##  sessioninfo            1.1.1     2018-11-05 [1]
+##  shape                  1.4.4     2018-02-07 [1]
+##  shiny                  1.2.0     2018-11-02 [1]
+##  shinydashboard         0.7.1     2018-10-17 [1]
+##  SingleCellExperiment * 1.5.2     2019-01-05 [1]
+##  statmod                1.4.30    2017-06-18 [1]
+##  stringi                1.3.1     2019-02-13 [1]
+##  stringr                1.4.0     2019-02-10 [1]
+##  SummarizedExperiment * 1.13.0    2018-10-30 [1]
+##  testthat               2.0.1     2018-10-13 [1]
+##  tibble                 2.0.1     2019-01-12 [1]
+##  tidyr                  0.8.2     2018-10-28 [1]
+##  tidyselect             0.2.5     2018-10-11 [1]
+##  triebeard              0.3.0     2016-08-04 [1]
+##  tweenr                 1.0.1     2018-12-14 [1]
+##  unisets              * 0.99.0    2019-03-01 [1]
+##  units                  0.6-2     2018-12-05 [1]
+##  UpSetR                 1.3.3     2017-03-21 [1]
+##  urltools               1.7.2     2019-02-04 [1]
+##  usethis                1.4.0     2018-08-14 [1]
+##  vipor                  0.4.5     2017-03-22 [1]
+##  viridis                0.5.1     2018-03-29 [1]
+##  viridisLite            0.3.0     2018-02-01 [1]
+##  withr                  2.1.2     2018-03-15 [1]
+##  xCellData            * 0.0.1     2019-03-01 [1]
+##  xfun                   0.5       2019-02-20 [1]
+##  XML                    3.98-1.17 2019-02-08 [1]
+##  xml2                   1.2.0     2018-01-24 [1]
+##  xtable                 1.8-3     2018-08-29 [1]
+##  XVector                0.23.0    2018-10-30 [1]
+##  yaml                   2.2.0     2018-07-25 [1]
+##  zlibbioc               1.29.0    2018-10-30 [1]
+##  source                                
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Github (Kayla-Morrell/GeneSet@894bde3)
+##  Bioconductor                          
+##  Bioconductor                          
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Github (kevinrue/hancock@dc31a15)     
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  local                                 
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  local                                 
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+##  CRAN (R 3.6.0)                        
+##  Bioconductor                          
+## 
+## [1] /Library/Frameworks/R.framework/Versions/3.6/Resources/library</code></pre>
 </div>
 <div id="links" class="section level1">
 <h1>Links</h1>

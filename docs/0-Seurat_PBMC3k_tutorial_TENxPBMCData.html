@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-18" />
+<meta name="date" content="2019-03-01" />
 
 <title>Seurat PBMC 3k tutorial using TENxPBMCData</title>
 
@@ -410,6 +410,9 @@ div.tocify {
     <li>
       <a href="2-learn-signatures.html">Learning signatures</a>
     </li>
+    <li>
+      <a href="3-pairedTTests.html">Gene set enrichment analysis of positive markers</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -437,7 +440,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Seurat PBMC 3k tutorial using TENxPBMCData</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>18 February 2019</em></h4>
+<h4 class="date"><em>1 March 2019</em></h4>
 
 </div>
 
@@ -525,7 +528,7 @@ pbmc &lt;- FilterCells(object=pbmc, subset.names=c(&quot;nGene&quot;, &quot;perc
 <pre class="r"><code>pbmc &lt;- ScaleData(object=pbmc, vars.to.regress=c(&quot;nUMI&quot;, &quot;percent.mito&quot;))</code></pre>
 <pre><code>## Regressing out: nUMI, percent.mito</code></pre>
 <pre><code>## 
-## Time Elapsed:  10.408212184906 secs</code></pre>
+## Time Elapsed:  10.7996120452881 secs</code></pre>
 <pre><code>## Scaling data matrix</code></pre>
 <pre class="r"><code>pbmc &lt;- RunPCA(object=pbmc, pc.genes=pbmc@var.genes, do.print=TRUE, pcs.print=1:5, 
     genes.print=5)</code></pre>
@@ -652,7 +655,7 @@ if (FALSE) {
 pbmc &lt;- FindClusters(object=pbmc, reduction.type=&quot;pca&quot;, dims.use=1:10, 
     resolution=0.6, print.output=0, save.SNN=TRUE)</code></pre>
 <pre class="r"><code>PrintFindClustersParams(object=pbmc)</code></pre>
-<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-02-18 21:26:24
+<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-02-28 21:22:03
 ## =============================================================================
 ## Resolution: 0.6
 ## -----------------------------------------------------------------------------

@@ -22,5 +22,7 @@ navbar:
         href: "1-proportion_signature.html"
       - text: "Learning signatures"
         href: "2-learn-signatures.html"
+      - text: "Gene set enrichment analysis of positive markers"
+        href: "3-pairedTTests.html"
     - text: "About"
       href: "about.html"

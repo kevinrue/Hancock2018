@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
 
 # Example data set
 
-First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed [here](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
+First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed in a [previous vignette](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
 
 ```{r, message=FALSE}
 library(SingleCellExperiment)
@@ -178,5 +178,6 @@ ggplot(scree0, aes(markers, proportion)) +
 # See also
 
 - [Applying Gene Signatures to the Seurat PBMC 3k Tutorial](1-proportion_signature.html)
+- [Gene set enrichment analysis of positive markers](3-pairedTTests.html)
 
 <button onclick="topFunction()" id="myBtn" title="Go to top">Back to top</button>

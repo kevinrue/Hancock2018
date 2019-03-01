@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-02-18" />
+<meta name="date" content="2019-03-01" />
 
 <title>Applying Gene Signatures to the Seurat PBMC 3k Tutorial</title>
 
@@ -410,6 +410,9 @@ div.tocify {
     <li>
       <a href="2-learn-signatures.html">Learning signatures</a>
     </li>
+    <li>
+      <a href="3-pairedTTests.html">Gene set enrichment analysis of positive markers</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -437,14 +440,14 @@ div.tocify {
 
 <h1 class="title toc-ignore">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</h1>
 <h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>18 February 2019</em></h4>
+<h4 class="date"><em>1 March 2019</em></h4>
 
 </div>
 
 
 <div id="example-data-set" class="section level1">
 <h1>Example data set</h1>
-<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">here</a>.</p>
+<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed in a <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">previous vignette</a>.</p>
 <pre class="r"><code>library(SingleCellExperiment)
 sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
 sce</code></pre>

@@ -409,6 +409,9 @@ div.tocify {
     <li>
       <a href="2-learn-signatures.html">Learning signatures</a>
     </li>
+    <li>
+      <a href="3-pairedTTests.html">Gene set enrichment analysis of positive markers</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -443,7 +446,7 @@ div.tocify {
 
 <div id="example-data-set" class="section level1">
 <h1>Example data set</h1>
-<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">here</a>.</p>
+<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed in a <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">previous vignette</a>.</p>
 <pre class="r"><code>library(SingleCellExperiment)
 sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
 sce</code></pre>
@@ -728,6 +731,7 @@ ggplot(scree0, aes(markers, proportion)) +
 <h1>See also</h1>
 <ul>
 <li><a href="1-proportion_signature.html">Applying Gene Signatures to the Seurat PBMC 3k Tutorial</a></li>
+<li><a href="3-pairedTTests.html">Gene set enrichment analysis of positive markers</a></li>
 </ul>
 <button onclick="topFunction()" id="myBtn" title="Go to top">
 Back to top

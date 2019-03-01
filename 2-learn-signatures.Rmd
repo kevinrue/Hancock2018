@@ -178,6 +178,6 @@ ggplot(scree0, aes(markers, proportion)) +
 # See also
 
 - [Applying Gene Signatures to the Seurat PBMC 3k Tutorial](1-proportion_signature.html)
-- [Gene set enrichment analysis of positive markers](3-pairedTTests.html)
+- [Enrichment of Gene Signatures in Positive Markers](3-pairedTTests.html)
 
 <button onclick="topFunction()" id="myBtn" title="Go to top">Back to top</button>

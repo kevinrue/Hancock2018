@@ -84,7 +84,7 @@ In this example, each signature identifier is already a descriptive name, so we 
 
 ```{r}
 TERM2NAME <- data.frame(
-    id = ids(setData(xcell)),
+    id = ids(setInfo(xcell)),
     name = rep("", nSets(xcell))
 )
 ```

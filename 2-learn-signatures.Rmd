@@ -46,11 +46,11 @@ In addition, we require that the genes comprising each signature are co-detected
 ```{r, message=FALSE}
 library(hancock)
 library(knitr)
-basesets <- learnSignatures(
+signatures <- learnSignatures(
     sce, assay.type = "counts",
     method = "PositiveProportionDifference", cluster.col="seurat.ident",
     threshold = 0, n = 2, min.diff = 0.2, diff.method = "min", min.prop = 0.1)
-x <- as.data.frame(basesets)
+x <- as.data.frame(signatures)
 x <- cbind(x, Symbol_TENx=rowData(sce)[x$element, "Symbol_TENx"])
 kable(x)
 ```
@@ -70,7 +70,7 @@ seuratTutorialMarkers <- list(
     "Dendritic Cells"=c("FCER1A", "CST3"),
     "Megakaryocytes"=c("PPBP")
 )
-seuratTutorialMarkers <- as(seuratTutorialMarkers, "BaseSets")
+seuratTutorialMarkers <- as(seuratTutorialMarkers, "Sets")
 seuratTutorialMarkers
 ```
 
@@ -87,7 +87,7 @@ library(ggplot2)
 library(cowplot)
 library(scales)
 ggList <- list()
-for (markerId in unique(ids(elements(basesets)))) {
+for (markerId in unique(ids(elements(signatures)))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
         logcounts=log2(assay(sce, "counts")[markerId, ] + 1)
@@ -115,21 +115,21 @@ cowplot::plot_grid(plotlist = ggList)
 ## Interactively
 
 It is possible to interactively set the names of each gene signature learned using an interactive _Shiny_ app.
-For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `BaseSets` object) and the annotated `SingleCellExperiment` to the interactive app.
+For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `Sets` object) and the annotated `SingleCellExperiment` to the interactive app.
 
 ```{r}
-basesets <- learnSignatures(
+signatures <- learnSignatures(
     sce, assay.type = "counts",
     method = "PositiveProportionDifference", cluster.col="seurat.celltype",
     threshold = 0, n = Inf, min.diff = 0.2)
-scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="seurat.ident")
+scePred <- predict(signatures, sce, method="ProportionPositive", cluster.col="seurat.ident")
 if (interactive()){
     library(shiny)
-    basesets <- runApp(shinyLabels(basesets, scePred))
+    signatures <- runApp(shinyLabels(signatures, scePred))
 }
 ```
 
-Note how the returned `basesets` object contains any update you may have done to the names of the gene sets interactively within the app.
+Note how the returned `signatures` object contains any update you may have done to the names of the gene sets interactively within the app.
 
 ## Proportion of cells predicted for each signature
 
@@ -137,7 +137,7 @@ One may also visualize the proportion of cells positive for each signature in ea
 If you renamed any signature in the previous chunk, the `predict` method should be run again to apply the new labels to the `SingleCellExperiment` object.
 
 ```{r}
-scePred <- predict(basesets, sce, method="ProportionPositive", cluster.col="seurat.ident")
+scePred <- predict(signatures, sce, method="ProportionPositive", cluster.col="seurat.ident")
 plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)
 ```
 

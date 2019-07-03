@@ -20,7 +20,6 @@ The following commands install the `hancock` package and some dependencies only 
 
 ```{r, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
 install.packages("devtools")
-devtools::install_github("Kayla-Morrell/GeneSet")
 devtools::install_github("kevinrue/unisets")
 devtools::install_github("kevinrue/hancock")
 ```

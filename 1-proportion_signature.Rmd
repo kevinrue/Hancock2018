@@ -40,7 +40,7 @@ geneLists <- list(
     "Dendritic Cells"=c("FCER1A", "CST3"),
     "Megakaryocytes"=c("PPBP")
 )
-basesets <- as(geneLists, "BaseSets")
+basesets <- as(geneLists, "Sets")
 basesets
 ```
 
@@ -125,7 +125,7 @@ With a bit more code, we can also display the expression of each marker on the r
 library(ggplot2)
 library(cowplot)
 ggList <- list()
-for (markerName in ids(elementData(basesets))) {
+for (markerName in ids(elementInfo(basesets))) {
     ggDataFrame <- data.frame(
         reducedDim(sce, "TSNE"),
         logcounts=log2(assay(sce, "counts")[markerName, ] + 1)

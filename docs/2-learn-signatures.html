@@ -78,9 +78,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -198,8 +196,6 @@ $(document).ready(function () {
   menuAnchor.closest('li.dropdown').addClass('active');
 });
 </script>
-
-<div class="container-fluid main-container">
 
 <!-- tabsets -->
 
@@ -355,8 +351,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -365,6 +359,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -438,15 +442,15 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Learning Gene Signatures from the Seurat PBMC 3k Tutorial</h1>
-<h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>19/12/2018</em></h4>
+<h4 class="author">Kevin Rue-Albrecht</h4>
+<h4 class="date">19/12/2018</h4>
 
 </div>
 
 
 <div id="example-data-set" class="section level1">
 <h1>Example data set</h1>
-<p>First, load the <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed in a <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">previous vignette</a>.</p>
+<p>First, load the <em><a href="https://bioconductor.org/packages/3.10/SingleCellExperiment">SingleCellExperiment</a></em> object of <a href="www.10xgenomics.com">10X Genomics</a> 2,700 peripheral blood mononuclear cells (PBMC) preprocessed in a <a href="0-Seurat_PBMC3k_tutorial_TENxPBMCData.html">previous vignette</a>.</p>
 <pre class="r"><code>library(SingleCellExperiment)
 sce &lt;- readRDS(&quot;pbmc3k_tutorial.sce.rds&quot;)
 sce</code></pre>
@@ -480,11 +484,11 @@ table(sce$seurat.celltype)</code></pre>
 <p>In addition, we require that the genes comprising each signature are co-detected in at least 10% of the target cluster (<code>min.prop=0.1</code>).</p>
 <pre class="r"><code>library(hancock)
 library(knitr)
-basesets &lt;- learnSignatures(
+signatures &lt;- learnSignatures(
     sce, assay.type = &quot;counts&quot;,
     method = &quot;PositiveProportionDifference&quot;, cluster.col=&quot;seurat.ident&quot;,
     threshold = 0, n = 2, min.diff = 0.2, diff.method = &quot;min&quot;, min.prop = 0.1)
-x &lt;- as.data.frame(basesets)
+x &lt;- as.data.frame(signatures)
 x &lt;- cbind(x, Symbol_TENx=rowData(sce)[x$element, &quot;Symbol_TENx&quot;])
 kable(x)</code></pre>
 <table>
@@ -624,22 +628,25 @@ seuratTutorialMarkers &lt;- list(
     &quot;Dendritic Cells&quot;=c(&quot;FCER1A&quot;, &quot;CST3&quot;),
     &quot;Megakaryocytes&quot;=c(&quot;PPBP&quot;)
 )
-seuratTutorialMarkers &lt;- as(seuratTutorialMarkers, &quot;BaseSets&quot;)
+seuratTutorialMarkers &lt;- as(seuratTutorialMarkers, &quot;Sets&quot;)
 seuratTutorialMarkers</code></pre>
-<pre><code>## BaseSets with 12 relations between 12 elements and 8 sets
-##      element             set relationData elementData     setData
-##   &lt;IdVector&gt;      &lt;IdVector&gt;  &lt;DataFrame&gt; &lt;DataFrame&gt; &lt;DataFrame&gt;
-## 1       IL7R     CD4 T cells                                     
-## 2       CD14 CD14+ Monocytes                                     
-## 3        LYZ CD14+ Monocytes                                     
-## 4      MS4A1         B cells                                     
-## 5       CD8A     CD8 T cells                                     
-##          ...             ...          ...         ...         ...
-## 1       GNLY        NK cells                                     
-## 2       NKG7        NK cells                                     
-## 3     FCER1A Dendritic Cells                                     
-## 4       CST3 Dendritic Cells                                     
-## 5       PPBP  Megakaryocytes</code></pre>
+<pre><code>## Sets with 12 relations between 12 elements and 8 sets
+##          element             set
+##      &lt;character&gt;     &lt;character&gt;
+##  [1]        IL7R     CD4 T cells
+##  [2]        CD14 CD14+ Monocytes
+##  [3]         LYZ CD14+ Monocytes
+##  [4]       MS4A1         B cells
+##  [5]        CD8A     CD8 T cells
+##  ...         ...             ...
+##  [8]        GNLY        NK cells
+##  [9]        NKG7        NK cells
+## [10]      FCER1A Dendritic Cells
+## [11]        CST3 Dendritic Cells
+## [12]        PPBP  Megakaryocytes
+## -----------
+## elementInfo: IdVector with 0 metadata
+##     setInfo: IdVector with 0 metadata</code></pre>
 </div>
 <div id="visualizing-signatures" class="section level1">
 <h1>Visualizing signatures</h1>
@@ -651,7 +658,7 @@ seuratTutorialMarkers</code></pre>
 library(cowplot)
 library(scales)
 ggList &lt;- list()
-for (markerId in unique(ids(elements(basesets)))) {
+for (markerId in unique(ids(elements(signatures)))) {
     ggDataFrame &lt;- data.frame(
         reducedDim(sce, &quot;TSNE&quot;),
         logcounts=log2(assay(sce, &quot;counts&quot;)[markerId, ] + 1)
@@ -678,22 +685,22 @@ cowplot::plot_grid(plotlist = ggList)</code></pre>
 </div>
 <div id="interactively" class="section level2">
 <h2>Interactively</h2>
-<p>It is possible to interactively set the names of each gene signature learned using an interactive <em>Shiny</em> app. For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a <code>BaseSets</code> object) and the annotated <code>SingleCellExperiment</code> to the interactive app.</p>
-<pre class="r"><code>basesets &lt;- learnSignatures(
+<p>It is possible to interactively set the names of each gene signature learned using an interactive <em>Shiny</em> app. For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a <code>Sets</code> object) and the annotated <code>SingleCellExperiment</code> to the interactive app.</p>
+<pre class="r"><code>signatures &lt;- learnSignatures(
     sce, assay.type = &quot;counts&quot;,
     method = &quot;PositiveProportionDifference&quot;, cluster.col=&quot;seurat.celltype&quot;,
     threshold = 0, n = Inf, min.diff = 0.2)
-scePred &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;seurat.ident&quot;)
+scePred &lt;- predict(signatures, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;seurat.ident&quot;)
 if (interactive()){
     library(shiny)
-    basesets &lt;- runApp(shinyLabels(basesets, scePred))
+    signatures &lt;- runApp(shinyLabels(signatures, scePred))
 }</code></pre>
-<p>Note how the returned <code>basesets</code> object contains any update you may have done to the names of the gene sets interactively within the app.</p>
+<p>Note how the returned <code>signatures</code> object contains any update you may have done to the names of the gene sets interactively within the app.</p>
 </div>
 <div id="proportion-of-cells-predicted-for-each-signature" class="section level2">
 <h2>Proportion of cells predicted for each signature</h2>
 <p>One may also visualize the proportion of cells positive for each signature in each cluster. If you renamed any signature in the previous chunk, the <code>predict</code> method should be run again to apply the new labels to the <code>SingleCellExperiment</code> object.</p>
-<pre class="r"><code>scePred &lt;- predict(basesets, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;seurat.ident&quot;)
+<pre class="r"><code>scePred &lt;- predict(signatures, sce, method=&quot;ProportionPositive&quot;, cluster.col=&quot;seurat.ident&quot;)
 plotProportionPositive(scePred, cluster_columns=FALSE, cluster_rows=FALSE)</code></pre>
 <p><img src="2-learn-signatures_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>

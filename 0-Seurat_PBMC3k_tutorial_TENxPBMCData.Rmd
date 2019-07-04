@@ -8,7 +8,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(cache=FALSE)
 stopifnot({
     require(BiocStyle)
 })
@@ -16,7 +16,7 @@ stopifnot({
 
 # Overview
 
-In this example, we use count data for 2,700 peripheral blood mononuclear cells (PBMC) obtained using the [10X Genomics](www.10xgenomics.com) platform, and process it following the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) of the `r CRANpkg("Seurat")` package.
+In this example, we use count data for 2,700 peripheral blood mononuclear cells (PBMC) obtained using the [10X Genomics](www.10xgenomics.com) platform, and process it following the [Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html) of the `r CRANpkg("Seurat")` package.
 
 # Getting the data
 
@@ -32,7 +32,7 @@ tenx_pbmc3k
 
 # Preparing the data
 
-Next, prepare a sparse matrix that emulates the first section of the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
+Next, prepare a sparse matrix that emulates the first section of the [Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html).
 
 ```{r, message=FALSE}
 library(Matrix)
@@ -42,7 +42,7 @@ pbmc.data <- as(pbmc.data, "dgTMatrix")
 
 # Seurat - Guided Clustering Tutorial
 
-From here on, follow the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) to the letter (code obtained on 2018-11-24).
+From here on, follow the [Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html) to the letter (code obtained on 2018-11-24).
 
 ```{r, message=FALSE}
 library(Seurat)
@@ -50,138 +50,110 @@ library(dplyr)
 # Initialize the Seurat object with the raw (non-normalized data).  Keep all
 # genes expressed in >= 3 cells (~0.1% of the data). Keep all cells with at
 # least 200 detected genes
-pbmc <- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, project="10X_PBMC")
+pbmc <- CreateSeuratObject(counts = pbmc.data, project = "pbmc3k", min.cells = 3, min.features = 200)
 pbmc
 ```
 
 ```{r}
-# The number of genes and UMIs (nGene and nUMI) are automatically calculated
-# for every object by Seurat.  For non-UMI data, nUMI represents the sum of
-# the non-normalized values within a cell We calculate the percentage of
-# mitochondrial genes here and store it in percent.mito using AddMetaData.
-# We use object@raw.data since this represents non-transformed and
-# non-log-normalized counts The % of UMI mapping to MT-genes is a common
-# scRNA-seq QC metric.
-mito.genes <- subset(rowData(tenx_pbmc3k), grepl("^MT-", Symbol_TENx), "ENSEMBL_ID", drop=TRUE)
-mito.genes <- intersect(mito.genes, rownames(pbmc@raw.data))
-percent.mito <- Matrix::colSums(pbmc@raw.data[mito.genes, ])/Matrix::colSums(pbmc@raw.data)
-
-# AddMetaData adds columns to object@meta.data, and is a great place to
-# stash QC stats
-pbmc <- AddMetaData(object=pbmc, metadata=percent.mito, col.name="percent.mito")
-VlnPlot(object=pbmc, features.plot=c("nGene", "nUMI", "percent.mito"), nCol=3)
+# The [[ operator can add columns to object metadata. This is a great place to stash QC stats
+pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
 ```
 
 ```{r}
-# GenePlot is typically used to visualize gene-gene relationships, but can
-# be used for anything calculated by the object, i.e. columns in
-# object@meta.data, PC scores etc.  Since there is a rare subset of cells
-# with an outlier level of high mitochondrial percentage and also low UMI
-# content, we filter these as well
-par(mfrow=c(1, 2))
-GenePlot(object=pbmc, gene1="nUMI", gene2="percent.mito")
-GenePlot(object=pbmc, gene1="nUMI", gene2="nGene")
+# Visualize QC metrics as a violin plot
+VlnPlot(pbmc, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 ```
 
 ```{r}
-# We filter out cells that have unique gene counts over 2,500 or less than
-# 200 Note that low.thresholds and high.thresholds are used to define a
-# 'gate'.  -Inf and Inf should be used if you don't want a lower or upper
-# threshold.
-pbmc <- FilterCells(object=pbmc, subset.names=c("nGene", "percent.mito"), 
-    low.thresholds=c(200, -Inf), high.thresholds=c(2500, 0.05))
+# FeatureScatter is typically used to visualize feature-feature relationships, but can be used
+# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
+
+plot1 <- FeatureScatter(pbmc, feature1 = "nCount_RNA", feature2 = "percent.mt")
+plot2 <- FeatureScatter(pbmc, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+CombinePlots(plots = list(plot1, plot2))
 ```
 
 ```{r}
-pbmc <- NormalizeData(object=pbmc, normalization.method="LogNormalize", 
-    scale.factor=10000)
+pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
 ```
 
 ```{r}
-pbmc <- FindVariableGenes(object=pbmc, mean.function=ExpMean, dispersion.function=LogVMR, 
-    x.low.cutoff=0.0125, x.high.cutoff=3, y.cutoff=0.5)
+pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
 ```
 
 ```{r}
-length(x=pbmc@var.genes)
+pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+
+# Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(pbmc), 10)
+
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(pbmc)
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+CombinePlots(plots = list(plot1, plot2))
 ```
 
 ```{r}
-pbmc <- ScaleData(object=pbmc, vars.to.regress=c("nUMI", "percent.mito"))
+all.genes <- rownames(pbmc)
+pbmc <- ScaleData(pbmc, features = all.genes)
 ```
 
 ```{r}
-pbmc <- RunPCA(object=pbmc, pc.genes=pbmc@var.genes, do.print=TRUE, pcs.print=1:5, 
-    genes.print=5)
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
 ```
 
 ```{r}
 # Examine and visualize PCA results a few different ways
-PrintPCA(object=pbmc, pcs.print=1:5, genes.print=5, use.full=FALSE)
+print(pbmc[["pca"]], dims = 1:5, nfeatures = 5)
 ```
 
 ```{r}
-VizPCA(object=pbmc, pcs.use=1:2)
+VizDimLoadings(pbmc, dims = 1:2, reduction = "pca")
 ```
 
 ```{r}
-PCAPlot(object=pbmc, dim.1=1, dim.2=2)
+DimPlot(pbmc, reduction = "pca")
 ```
 
 ```{r}
-# ProjectPCA scores each gene in the dataset (including genes not included
-# in the PCA) based on their correlation with the calculated components.
-# Though we don't use this further here, it can be used to identify markers
-# that are strongly correlated with cellular heterogeneity, but may not have
-# passed through variable gene selection.  The results of the projected PCA
-# can be explored by setting use.full=T in the functions above
-pbmc <- ProjectPCA(object=pbmc, do.print=FALSE)
+DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
 ```
 
 ```{r}
-PCHeatmap(object=pbmc, pc.use=1, cells.use=500, do.balanced=TRUE, label.columns=FALSE)
-```
-
-```{r}
-PCHeatmap(object=pbmc, pc.use=1:12, cells.use=500, do.balanced=TRUE, 
-    label.columns=FALSE, use.full=FALSE)
+DimHeatmap(pbmc, dims = 1:15, cells = 500, balanced = TRUE)
 ```
 
 Small deviation from the tutorial. Skip the lengthy JackStraw computation.
 
 ```{r}
-# NOTE: This process can take a long time for big datasets, comment out for
-# expediency.  More approximate techniques such as those implemented in
-# PCElbowPlot() can be used to reduce computation time
 if (FALSE) {
-    pbmc <- JackStraw(object=pbmc, num.replicate=100, display.progress=FALSE)
-    JackStrawPlot(object=pbmc, PCs=1:12)
+    # NOTE: This process can take a long time for big datasets, comment out for expediency. More
+    # approximate techniques such as those implemented in ElbowPlot() can be used to reduce
+    # computation time
+    pbmc <- JackStraw(pbmc, num.replicate = 100)
+    pbmc <- ScoreJackStraw(pbmc, dims = 1:20)
+    JackStrawPlot(pbmc, dims = 1:15)
 }
 ```
 
 ```{r}
-PCElbowPlot(object=pbmc)
+ElbowPlot(pbmc)
 ```
 
 ```{r}
-# save.SNN=T saves the SNN so that the clustering algorithm can be rerun
-# using the same graph but with a different resolution value (see docs for
-# full details)
-pbmc <- FindClusters(object=pbmc, reduction.type="pca", dims.use=1:10, 
-    resolution=0.6, print.output=0, save.SNN=TRUE)
+pbmc <- FindNeighbors(pbmc, dims = 1:10)
+pbmc <- FindClusters(pbmc, resolution = 0.5)
+# Look at cluster IDs of the first 5 cells
+head(Idents(pbmc), 5)
 ```
 
 ```{r}
-PrintFindClustersParams(object=pbmc)
-```
-
-```{r}
-pbmc <- RunTSNE(object=pbmc, dims.use=1:10, do.fast=TRUE)
-```
-
-```{r}
-# note that you can set do.label=T to help label individual clusters
-TSNEPlot(object=pbmc)
+# If you haven't installed UMAP, you can do so via reticulate::py_install(packages =
+# 'umap-learn')
+pbmc <- RunUMAP(pbmc, dims = 1:10)
+# note that you can set `label = TRUE` or use the LabelClusters function to help label
+# individual clusters
+DimPlot(pbmc, reduction = "umap")
 ```
 
 Save the `seurat` object
@@ -196,13 +168,12 @@ Save the original `SingleCellExperiment` object, after:
 - adding the cluster assignments
 - adding the PCA and t-SNE dimensionality reduction results
 
-
 ```{r}
-tenx_pbmc3k <- tenx_pbmc3k[, pbmc@cell.names]
-colData(tenx_pbmc3k)[["seurat.ident"]] <- as.factor(pbmc@ident)
-reducedDim(tenx_pbmc3k, "PCA") <- pbmc@dr$pca@cell.embeddings
-reducedDim(tenx_pbmc3k, "TSNE") <- pbmc@dr$tsne@cell.embeddings
-colnames(tenx_pbmc3k) <- NULL # remove the dummy cell names before exporting
+tenx_pbmc3k <- tenx_pbmc3k[, colnames(pbmc)]
+colData(tenx_pbmc3k)[["seurat.ident"]] <- Idents(pbmc)
+reducedDim(tenx_pbmc3k, "PCA") <- Embeddings(pbmc, reduction = "pca")
+reducedDim(tenx_pbmc3k, "UMAP") <- Embeddings(pbmc, reduction = "umap")
+colnames(tenx_pbmc3k) <- NULL # remove the superfluous dummy cell names before exporting
 saveRDS(tenx_pbmc3k, file="pbmc3k_tutorial.sce.rds")
 ```
 
@@ -210,8 +181,8 @@ Export the cluster identity vector.
 It will be included in the `r Githubpkg("kevinrue/hancock")` package, and mapped using the dummy cell names defined at the start of this notebook.
 
 ```{r}
-ident <- pbmc@ident
-names(ident) <- pbmc@cell.names
+ident <- Idents(pbmc)
+names(ident) <- colnames(pbmc)
 saveRDS(ident, "pbmc3k.ident.rds")
 ```
 

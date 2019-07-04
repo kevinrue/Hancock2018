@@ -1,0 +1,228 @@
+---
+title: "Applying Gene Signatures to the Seurat PBMC 3k Tutorial"
+author: "Kevin Rue-Albrecht"
+date: "`r BiocStyle::doc_date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(cache=TRUE)
+suppressPackageStartupMessages({
+    require(BiocStyle)
+})
+```
+
+# Example data set
+
+First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed [here](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
+
+```{r, message=FALSE}
+library(SingleCellExperiment)
+sce <- readRDS("pbmc3k_tutorial.sce.rds")
+sce
+```
+
+# Reference cell type signatures
+
+## Download xCell
+
+We download
+[Additional file 3](https://static-content.springer.com/esm/art%3A10.1186%2Fs13059-017-1349-1/MediaObjects/13059_2017_1349_MOESM3_ESM.xlsx) from [xCell: digitally portraying the tissue cellular heterogeneity landscape](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-017-1349-1)
+This file contains the 489 cell type gene signatures in GMT format as a Microsoft Excel file (XLSX 417 kb).
+
+```{r, message=FALSE}
+library(BiocFileCache)
+bfc <- BiocFileCache()
+url <- "https://static-content.springer.com/esm/art%3A10.1186%2Fs13059-017-1349-1/MediaObjects/13059_2017_1349_MOESM3_ESM.xlsx"
+name_xCell <- "xCell_signatures"
+rid_xCell <- bfcrid(bfcquery(bfc, name_xCell))
+if (length(rid_xCell) == 1L) {
+    path_xCell <- bfcpath(bfc, rid_xCell)
+} else {
+    path_xCell <- bfcadd(x = bfc, rname = , fpath=url)
+}
+path_xCell
+```
+
+First, we preprocess the gene sets into a named list.
+
+```{r, message=FALSE}
+library(readxl)
+xCell_raw <- read_excel(path_xCell)
+xCell_list <- list()
+for (i in seq_len(nrow(xCell_raw))) {
+    genesetName <- as.character(xCell_raw[i, 1])
+    genesetSymbols <- setdiff(as.character(xCell_raw[i, seq(3, ncol(xCell_raw))]), NA)
+    xCell_list[[genesetName]] <- genesetSymbols
+}
+summary(lengths(xCell_list))
+```
+
+Then we convert this named list into a `r Githubpkg("kevinrue/unisets")` `BaseSets` object.
+
+```{r}
+library(unisets)
+xCell_sets <- as(xCell_list, "BaseSets")
+xCell_sets
+```
+
+# Learning signatures from a data set
+
+For each cell cluster, compute the complete list of genes detected above a certain threshold.
+For the time being, total count over all cells in the cluster, which is totally unfair for the smaller clusters.
+Ideally, apply a "count per cell" threshold for each gene.
+This can be a decimal value lower than 1 (most likely for droplets, where genes are rarely detected in all cells).
+
+
+```{r, eval=FALSE}
+panMarkerList <- list()
+for (clusterName in levels(sce$seurat.ident)) {
+    cellNames <- which(sce$seurat.ident == clusterName) # cell names
+    markersIndex <- which(rowSums2(assay(sce[, cellNames], "counts")) > 0) # markers index
+    panMarkerList[[clusterName]] <- rownames(sce)[markersIndex]
+}
+lengths(panMarkerList)
+```
+
+Alternative version: genes detected in a minimum proportion of the cells in each cluster.
+
+```{r}
+panMarkerList <- list()
+for (clusterName in levels(sce$seurat.ident)) {
+    cellNames <- which(sce$seurat.ident == clusterName) # cell names
+    markersIndex <- which(DelayedMatrixStats::rowMeans2(assay(sce[, cellNames], "counts") > 0) > 0.2) # markers index
+    panMarkerList[[clusterName]] <- rownames(sce)[markersIndex]
+}
+lengths(panMarkerList)
+```
+
+
+# Test each set of markers for over-representation of known signatures
+
+We need sub-functions to:
+
+- convert marker identifiers from the data set format to the signature format
+- test over-representation of one signature for one set of marker
+- test all signatures for one set of markers
+- test all signatures for all sets of markers
+
+Note that:
+
+- cluster markers should be converted only once to the type of identifiers used for testing
+- gene sets should be `split` rather than iterated over using `for` loops
+
+First we convert each list of markers 
+
+```{r}
+library(org.Hs.eg.db)
+convertClusterMarkersEnsemblToSymbol <- function(clusterName) {
+    clusterMarkers <- panMarkerList[[clusterName]]
+    out <- mapIds(org.Hs.eg.db, clusterMarkers, "SYMBOL", "ENSEMBL", multiVals = "CharacterList")
+    out <- unlist(out)
+    out <- unique(out)
+    out <- setdiff(out, NA)
+    return(out)
+}
+panMarkersSymbols <- lapply(names(panMarkerList), convertClusterMarkersEnsemblToSymbol)
+names(panMarkersSymbols) <- names(panMarkerList)
+lengths(panMarkersSymbols)
+```
+
+Test one set of markers against one signature.
+
+```{r}
+UniverseSymbols <- setdiff(unique(mapIds(org.Hs.eg.db, rownames(sce), "SYMBOL", "ENSEMBL")), NA)
+table(ids(elementData(xCell_sets)) %in% UniverseSymbols) # not all xCell symbols are present in the Universe - trim the signatures to the universe
+xCell_sets <- subset(xCell_sets, element %in% UniverseSymbols)
+test_1v1 <- function(x, y, u) {
+    alternative="greater"
+    tableLevels <- c(TRUE, FALSE)
+    x <- as.character(x)
+    x <- intersect(x, u)
+    y <- as.character(y)
+    y <- intersect(y, u)
+    if (identical(length(y), 0L)) {
+        return(NULL)
+    }
+    u <- as.character(u)
+    x <- table(
+        factor(u %in% x, tableLevels),
+        factor(u %in% y, tableLevels),
+        dnn = list("x", "y")
+    )
+    # print(x)
+    fisher.test(x, alternative=alternative)
+}
+out <- test_1v1(
+    x = panMarkersSymbols[["0"]],
+    y = ids(elementData(subset(xCell_sets, set == "CD4+ T-cells_BLUEPRINT_1"))),
+    u = UniverseSymbols)
+out$estimate
+```
+
+Test one set of markers against all signatures in a `BaseSets`.
+
+```{r}
+test_1vMany <- function(x, bs, u) {
+    p.adjust.method <- "BH"
+    ys <- as.list(bs)
+    resList <- lapply(ys, test_1v1, x = x, u = u)
+    extractValue <- function(x, name) {
+        x[[name]]
+    }
+    out <- data.frame(
+        set = names(ys),
+        estimate=vapply(resList, extractValue, numeric(1), name="estimate"),
+        p.value=vapply(resList, extractValue, numeric(1), name="p.value")
+    )
+    out[[p.adjust.method]] <- p.adjust(out$p.value, p.adjust.method)
+    out <- out[order(out$p.value), ]
+}
+out <- test_1vMany(
+    x = panMarkersSymbols[["0"]],
+    bs = xCell_sets,
+    u = UniverseSymbols)
+out <- cbind(cluster="0", out)
+head(out)
+```
+
+Test one set of markers against all signatures in a `BaseSets`.
+
+```{r}
+test_ManyvMany <- function(xs, bs, u) {
+    resList <- lapply(xs, test_1vMany, bs = bs, u)
+    resList <- lapply(names(resList), function(x){cbind(cluster=x, resList[[x]])})
+    resList <- do.call(rbind, resList)
+    resList
+}
+resList <- test_ManyvMany(
+    x = panMarkersSymbols,
+    bs = xCell_sets,
+    u = UniverseSymbols)
+# head(resList)
+# subset(resList, BH < 0.05)
+# dim(subset(resList, BH < 0.05))
+require(dplyr)
+as.data.frame(
+    subset(resList, BH < 0.05) %>%
+        arrange(cluster, desc(estimate)) %>%
+        group_by(cluster) %>%
+        top_n(2)
+)
+```
+
+# Dev notes
+
+After converting the `sce` rownames to "SYMBOL", we examine how many xCell symbols are represented in the data set.
+
+```
+> table(xcell_symbols %in% sce_symbols)
+FALSE  TRUE 
+  121  4958 
+```
+
+# See also
+
+- [Dummy text](dummy-link.html)
+
+<button onclick="topFunction()" id="myBtn" title="Go to top">Back to top</button>

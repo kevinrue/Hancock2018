@@ -1,0 +1,80 @@
+---
+title: "Applying Gene Signatures to the Seurat PBMC 3k Tutorial"
+author: "Kevin Rue-Albrecht"
+date: "`r BiocStyle::doc_date()`"
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(cache=FALSE)
+suppressPackageStartupMessages({
+    library(BiocStyle)
+})
+```
+
+# Example data set
+
+First, load the `r Biocpkg("SingleCellExperiment")` object of [10X Genomics](www.10xgenomics.com) 2,700 peripheral blood mononuclear cells (PBMC) preprocessed [here](0-Seurat_PBMC3k_tutorial_TENxPBMCData.html).
+
+```{r, message=FALSE}
+library(SingleCellExperiment)
+sce <- readRDS("pbmc3k_tutorial.sce.rds")
+sce
+```
+
+# Load xCellData
+
+```{r, message=FALSE}
+library(xCellData)
+library(unisets)
+xcell <- xCellData()
+```
+
+# Load clusterProfiler
+
+```{r, message=FALSE}
+library(clusterProfiler)
+```
+
+# Prepare annotations as tables
+
+```{r, message=FALSE}
+TERM2GENE <- as.data.frame(xcell)[, c("set", "element")]
+library(org.Hs.eg.db)
+TERM2GENE$element <- mapIds(org.Hs.eg.db, TERM2GENE$element, "ENSEMBL", "SYMBOL")
+```
+
+```{r}
+TERM2NAME <- data.frame(
+    id = ids(setData(xcell)),
+    name = ids(setData(xcell))
+)
+```
+
+# Run the analysis
+
+Rank the genes by decreasing detection frequency (in cluster 0).
+
+```{r}
+runGSEA <- function(clusterName, sce, cluster.col, threshold=1, top=10) {
+    sce0 <- sce[, colData(sce)[[cluster.col]] == clusterName]
+    freq0 <- rowMeans(assay(sce0) > threshold)
+    names(freq0) <- rownames(sce0)
+    freq0 <- sort(freq0, decreasing = TRUE)
+    print(head(freq0))
+    # remove undetected features
+    freq0 <- freq0[freq0 > 0]
+    y = GSEA(freq0, TERM2GENE=TERM2GENE, TERM2NAME=TERM2NAME, pvalueCutoff=1, verbose = FALSE)
+    y <- as.data.frame(y)
+    y <- head(y, top)
+    y <- cbind(cluster = clusterName, y)
+    y
+}
+resList <- lapply(levels(sce$seurat.ident), runGSEA, sce = sce, cluster.col="seurat.ident", threshold=0, top=10)
+res <- do.call(rbind, resList)
+as.data.frame(res)
+```
+
+

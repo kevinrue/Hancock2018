@@ -26,36 +26,37 @@ sce
 
 # Gene signatures
 
-Declare the predefined gene signatures used in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html).
+Declare the predefined gene signatures used in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html).
 
 ```{r, message=FALSE}
 library(unisets)
 geneLists <- list(
-    "CD4 T cells"=c("IL7R"),
-    "CD14+ Monocytes"=c("CD14", "LYZ"),
-    "B cells"=c("MS4A1"),
-    "CD8 T cells"=c("CD8A"),
-    "FCGR3A+ Monocytes"=c("FCGR3A", "MS4A7"),
-    "NK cells"=c("GNLY", "NKG7"),
-    "Dendritic Cells"=c("FCER1A", "CST3"),
-    "Megakaryocytes"=c("PPBP")
+    "Naive CD4+ T"=c("IL7R", "CCR7"),
+    "CD14+ Mono"=c("CD14", "LYZ"),
+    "Memory CD4+"=c("IL7R", "S100A4"),
+    "B"=c("MS4A1"),
+    "CD8+ T"=c("CD8A"),
+    "FCGR3A+ Mono"=c("FCGR3A", "MS4A7"),
+    "NK"=c("GNLY", "NKG7"),
+    "DC"=c("FCER1A", "CST3"),
+    "Platelet"=c("PPBP")
 )
-basesets <- as(geneLists, "Sets")
-basesets
+genesets <- as(geneLists, "Sets")
+genesets
 ```
 
 # Applying signatures to a data set
 
 ## The `predict` method
 
-The `basesets` object can immediately be supplied to the `predict` S3 method, in combination with the `r Biocpkg("SummarizedExperiment")` object to annotate.
-However, the cell type signatures described in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) use gene symbol identifiers, which do not match the Ensembl gene identifiers used in `rownames(sce)`.
+The `r Githubpkg("kevinrue/unisets")` `Sets` object can immediately be supplied to the `predict` S3 method, in combination with the `r Biocpkg("SummarizedExperiment")` object to annotate.
+However, the cell type signatures described in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html) use gene symbol identifiers, which do not match the Ensembl gene identifiers used in `rownames(sce)`.
 Here, to make the gene identifiers compatible between the data set and the signatures, we simply replace the Ensembl gene identifiers by the `"Symbol_TENx"` gene metadata, after making duplicated values unique.
 
 ```{r, message=FALSE}
 library(hancock)
 rownames(sce) <- make.unique(rowData(sce)[["Symbol_TENx"]])
-sce <- predict(basesets, sce, method="ProportionPositive", cluster.col="seurat.ident")
+sce <- predict(genesets, sce, method="ProportionPositive", cluster.col="seurat.ident")
 ```
 
 ## Prediction outputs
@@ -105,6 +106,7 @@ metadata(sce)[["hancock"]][["TopSignatureByCluster"]]
 
 It is possible to visualize the proportion of cells positive for each signature in each cluster as a heat map.
 Note how the diagonal (displaying the tutorial annotations) shows high proportions of cells matching the annotated signature.
+However, cluster 0 (curated as "Naive CD4+ T" in the [Seurat - Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html)) is predicted here as "Memory CD4+" due to a larger proportion of cells positive for that signature in this cluster.
 
 ```{r}
 plotProportionPositive(sce, cluster_rows=FALSE, cluster_columns=FALSE)
@@ -125,13 +127,13 @@ With a bit more code, we can also display the expression of each marker on the r
 library(ggplot2)
 library(cowplot)
 ggList <- list()
-for (markerName in ids(elementInfo(basesets))) {
+for (markerName in ids(elementInfo(genesets))) {
     ggDataFrame <- data.frame(
-        reducedDim(sce, "TSNE"),
+        reducedDim(sce, "UMAP"),
         logcounts=log2(assay(sce, "counts")[markerName, ] + 1)
     )
-    cellIdentity <- subset(as.data.frame(basesets), element == markerName, "set", drop=TRUE)
-    gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
+    cellIdentity <- subset(as.data.frame(genesets), element == markerName, "set", drop=TRUE)
+    gg <- ggplot(ggDataFrame, aes(UMAP_1, UMAP_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +
         labs(title=markerName, subtitle=cellIdentity, x=NULL, y=NULL) +

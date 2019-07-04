@@ -28,12 +28,12 @@ sce
 
 Here, we use the data set as a reference to learn markers associated with known cell types.
 
-To do so, we store manually curated cell type annotations (obtained from the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) of the `r CRANpkg("Seurat")` package) in the `"seurat.celltype"` cell metadata.
+To do so, we store manually curated cell type annotations (obtained from the [Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html) of the `r CRANpkg("Seurat")` package) in the `"seurat.celltype"` cell metadata.
 
 ```{r}
 sce$seurat.celltype <- factor(sce$seurat.ident, labels = c(
-    "CD4 T cells", "CD14+ Monocytes", "B cells", "CD8 T cells",
-    "FCGR3A+ Monocytes", "NK cells", "Dendritic Cells", "Megakaryocytes"
+    "Naive CD4+ T", "CD14+ Mono", "Memory CD4+", "B", "CD8+ T",
+    "FCGR3A+ Mono", "NK", "DC", "Platelet"
 ))
 table(sce$seurat.celltype)
 ```
@@ -49,13 +49,13 @@ library(knitr)
 signatures <- learnSignatures(
     sce, assay.type = "counts",
     method = "PositiveProportionDifference", cluster.col="seurat.ident",
-    threshold = 0, n = 2, min.diff = 0.2, diff.method = "min", min.prop = 0.1)
+    threshold = 2, n = 2, min.diff = 0.2, diff.method = "min", min.prop = 0.1)
 x <- as.data.frame(signatures)
 x <- cbind(x, Symbol_TENx=rowData(sce)[x$element, "Symbol_TENx"])
 kable(x)
 ```
 
-Note that the table above does include some of the markers suggested in the [Seurat Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) (listed below).
+Note that the table above does include some of the markers suggested in the [Seurat Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html) (listed below).
 Namely, CD14 (CD14+ Monocytes), MS4A1 (B cells), CD8A (CD8 T cells), FCER1A (Dendritic Cells), PPBP (Megakaryocytes).
 
 ```{r, message=FALSE}
@@ -80,7 +80,7 @@ seuratTutorialMarkers
 
 Let us visualize the top 2 markers identified in this way for each cluster.
 
-For reference, the cell type identity associated with markers mentioned in the [Guided Clustering Tutorial](https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html) is indicated in each panel subtitle, where applicable. 
+For reference, the cell type identity associated with markers mentioned in the [Guided Clustering Tutorial](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html) is indicated in each panel subtitle, where applicable. 
 
 ```{r, message=FALSE, fig.height=12, fig.width=8}
 library(ggplot2)
@@ -89,13 +89,13 @@ library(scales)
 ggList <- list()
 for (markerId in unique(ids(elements(signatures)))) {
     ggDataFrame <- data.frame(
-        reducedDim(sce, "TSNE"),
+        reducedDim(sce, "UMAP"),
         logcounts=log2(assay(sce, "counts")[markerId, ] + 1)
     )
     markerName <- rowData(sce)[markerId, "Symbol_TENx"]
     seuratIdentity <- subset(as(seuratTutorialMarkers, "data.frame"), element == markerName, "set", drop=TRUE)
     if (length(seuratIdentity) == 0) { seuratIdentity <- " "} # trick to make equal plot dimensions
-    gg <- ggplot(ggDataFrame, aes(tSNE_1, tSNE_2, color=logcounts)) +
+    gg <- ggplot(ggDataFrame, aes(UMAP_1, UMAP_2, color=logcounts)) +
         geom_point(size=0.1) +
         scale_color_viridis_c() +
         labs(
@@ -116,6 +116,8 @@ cowplot::plot_grid(plotlist = ggList)
 
 It is possible to interactively set the names of each gene signature learned using an interactive _Shiny_ app.
 For this purpose, we learn as many markers as possible for each cluster, and we pass both the signatures (as a `Sets` object) and the annotated `SingleCellExperiment` to the interactive app.
+
+<!-- The following chunk fails after the DelayedArray update to 0.11.4 -->
 
 ```{r}
 signatures <- learnSignatures(
@@ -165,7 +167,7 @@ order0 <- order(freq0, decreasing=TRUE)
 # Test whether each marker is detected in each cell
 detection0 <- makeMarkerDetectionMatrix(sce0, head(rownames(sce0)[order0], topMarkers))
 # Compute the simultaneous detection rate for increasing numbers of markers
-scree0 <- makeMarkerProportionScree(detection0)
+scree0 <- makeMarkerProportionScree(as.matrix(detection0))
 # Plot
 ggplot(scree0, aes(markers, proportion)) +
     geom_line() + geom_point(size=0.4) +

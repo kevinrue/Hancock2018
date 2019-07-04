@@ -11,7 +11,7 @@
 
 <meta name="author" content="Kevin Rue-Albrecht" />
 
-<meta name="date" content="2019-03-01" />
+<meta name="date" content="2019-07-04" />
 
 <title>Seurat PBMC 3k tutorial using TENxPBMCData</title>
 
@@ -79,9 +79,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -199,8 +197,6 @@ $(document).ready(function () {
   menuAnchor.closest('li.dropdown').addClass('active');
 });
 </script>
-
-<div class="container-fluid main-container">
 
 <!-- tabsets -->
 
@@ -356,8 +352,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -366,6 +360,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -439,19 +443,19 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Seurat PBMC 3k tutorial using TENxPBMCData</h1>
-<h4 class="author"><em>Kevin Rue-Albrecht</em></h4>
-<h4 class="date"><em>1 March 2019</em></h4>
+<h4 class="author">Kevin Rue-Albrecht</h4>
+<h4 class="date">4 July 2019</h4>
 
 </div>
 
 
 <div id="overview" class="section level1">
 <h1>Overview</h1>
-<p>In this example, we use count data for 2,700 peripheral blood mononuclear cells (PBMC) obtained using the <a href="www.10xgenomics.com">10X Genomics</a> platform, and process it following the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> of the <em><a href="https://CRAN.R-project.org/package=Seurat">Seurat</a></em> package.</p>
+<p>In this example, we use count data for 2,700 peripheral blood mononuclear cells (PBMC) obtained using the <a href="www.10xgenomics.com">10X Genomics</a> platform, and process it following the <a href="https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html">Guided Clustering Tutorial</a> of the <em><a href="https://CRAN.R-project.org/package=Seurat">Seurat</a></em> package.</p>
 </div>
 <div id="getting-the-data" class="section level1">
 <h1>Getting the data</h1>
-<p>First, fetch the data as a <em><a href="https://bioconductor.org/packages/3.9/SingleCellExperiment">SingleCellExperiment</a></em> object using the <em><a href="https://bioconductor.org/packages/3.9/TENxPBMCData">TENxPBMCData</a></em> package. The first time that the following code chunk is run, users should expect it to take additional time as it downloads data from the web and caches it on their local machine; subsequent evaluations of the same code chunk should only take a few seconds as the data set is then loaded from the local cache.</p>
+<p>First, fetch the data as a <em><a href="https://bioconductor.org/packages/3.10/SingleCellExperiment">SingleCellExperiment</a></em> object using the <em><a href="https://bioconductor.org/packages/3.10/TENxPBMCData">TENxPBMCData</a></em> package. The first time that the following code chunk is run, users should expect it to take additional time as it downloads data from the web and caches it on their local machine; subsequent evaluations of the same code chunk should only take a few seconds as the data set is then loaded from the local cache.</p>
 <pre class="r"><code>library(TENxPBMCData)
 tenx_pbmc3k &lt;- TENxPBMCData(dataset=&quot;pbmc3k&quot;)
 colnames(tenx_pbmc3k) &lt;- paste0(&quot;Cell&quot;, seq_len(ncol(tenx_pbmc3k)))
@@ -470,208 +474,158 @@ tenx_pbmc3k</code></pre>
 </div>
 <div id="preparing-the-data" class="section level1">
 <h1>Preparing the data</h1>
-<p>Next, prepare a sparse matrix that emulates the first section of the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a>.</p>
+<p>Next, prepare a sparse matrix that emulates the first section of the <a href="https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html">Guided Clustering Tutorial</a>.</p>
 <pre class="r"><code>library(Matrix)
 pbmc.data &lt;- as(counts(tenx_pbmc3k), &quot;Matrix&quot;)
 pbmc.data &lt;- as(pbmc.data, &quot;dgTMatrix&quot;)</code></pre>
 </div>
 <div id="seurat---guided-clustering-tutorial" class="section level1">
 <h1>Seurat - Guided Clustering Tutorial</h1>
-<p>From here on, follow the <a href="https://satijalab.org/seurat/pbmc3k_tutorial_1_4.html">Guided Clustering Tutorial</a> to the letter (code obtained on 2018-11-24).</p>
+<p>From here on, follow the <a href="https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html">Guided Clustering Tutorial</a> to the letter (code obtained on 2018-11-24).</p>
 <pre class="r"><code>library(Seurat)
 library(dplyr)
 # Initialize the Seurat object with the raw (non-normalized data).  Keep all
 # genes expressed in &gt;= 3 cells (~0.1% of the data). Keep all cells with at
 # least 200 detected genes
-pbmc &lt;- CreateSeuratObject(raw.data=pbmc.data, min.cells=3, min.genes=200, project=&quot;10X_PBMC&quot;)
+pbmc &lt;- CreateSeuratObject(counts = pbmc.data, project = &quot;pbmc3k&quot;, min.cells = 3, min.features = 200)
 pbmc</code></pre>
-<pre><code>## An object of class seurat in project 10X_PBMC 
-##  13714 genes across 2700 samples.</code></pre>
-<pre class="r"><code># The number of genes and UMIs (nGene and nUMI) are automatically calculated
-# for every object by Seurat.  For non-UMI data, nUMI represents the sum of
-# the non-normalized values within a cell We calculate the percentage of
-# mitochondrial genes here and store it in percent.mito using AddMetaData.
-# We use object@raw.data since this represents non-transformed and
-# non-log-normalized counts The % of UMI mapping to MT-genes is a common
-# scRNA-seq QC metric.
-mito.genes &lt;- subset(rowData(tenx_pbmc3k), grepl(&quot;^MT-&quot;, Symbol_TENx), &quot;ENSEMBL_ID&quot;, drop=TRUE)
-mito.genes &lt;- intersect(mito.genes, rownames(pbmc@raw.data))
-percent.mito &lt;- Matrix::colSums(pbmc@raw.data[mito.genes, ])/Matrix::colSums(pbmc@raw.data)
-
-# AddMetaData adds columns to object@meta.data, and is a great place to
-# stash QC stats
-pbmc &lt;- AddMetaData(object=pbmc, metadata=percent.mito, col.name=&quot;percent.mito&quot;)
-VlnPlot(object=pbmc, features.plot=c(&quot;nGene&quot;, &quot;nUMI&quot;, &quot;percent.mito&quot;), nCol=3)</code></pre>
-<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<pre class="r"><code># GenePlot is typically used to visualize gene-gene relationships, but can
-# be used for anything calculated by the object, i.e. columns in
-# object@meta.data, PC scores etc.  Since there is a rare subset of cells
-# with an outlier level of high mitochondrial percentage and also low UMI
-# content, we filter these as well
-par(mfrow=c(1, 2))
-GenePlot(object=pbmc, gene1=&quot;nUMI&quot;, gene2=&quot;percent.mito&quot;)
-GenePlot(object=pbmc, gene1=&quot;nUMI&quot;, gene2=&quot;nGene&quot;)</code></pre>
+<pre><code>## An object of class Seurat 
+## 13714 features across 2700 samples within 1 assay 
+## Active assay: RNA (13714 features)</code></pre>
+<pre class="r"><code># The [[ operator can add columns to object metadata. This is a great place to stash QC stats
+pbmc[[&quot;percent.mt&quot;]] &lt;- PercentageFeatureSet(pbmc, pattern = &quot;^MT-&quot;)</code></pre>
+<pre class="r"><code># Visualize QC metrics as a violin plot
+VlnPlot(pbmc, features = c(&quot;nFeature_RNA&quot;, &quot;nCount_RNA&quot;, &quot;percent.mt&quot;), ncol = 3)</code></pre>
+<pre><code>## Warning in SingleExIPlot(type = type, data = data[, x, drop = FALSE],
+## idents = idents, : All cells have the same value of percent.mt.</code></pre>
 <p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
-<pre class="r"><code># We filter out cells that have unique gene counts over 2,500 or less than
-# 200 Note that low.thresholds and high.thresholds are used to define a
-# &#39;gate&#39;.  -Inf and Inf should be used if you don&#39;t want a lower or upper
-# threshold.
-pbmc &lt;- FilterCells(object=pbmc, subset.names=c(&quot;nGene&quot;, &quot;percent.mito&quot;), 
-    low.thresholds=c(200, -Inf), high.thresholds=c(2500, 0.05))</code></pre>
-<pre class="r"><code>pbmc &lt;- NormalizeData(object=pbmc, normalization.method=&quot;LogNormalize&quot;, 
-    scale.factor=10000)</code></pre>
-<pre class="r"><code>pbmc &lt;- FindVariableGenes(object=pbmc, mean.function=ExpMean, dispersion.function=LogVMR, 
-    x.low.cutoff=0.0125, x.high.cutoff=3, y.cutoff=0.5)</code></pre>
-<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<pre class="r"><code>length(x=pbmc@var.genes)</code></pre>
-<pre><code>## [1] 1838</code></pre>
-<pre class="r"><code>pbmc &lt;- ScaleData(object=pbmc, vars.to.regress=c(&quot;nUMI&quot;, &quot;percent.mito&quot;))</code></pre>
-<pre><code>## Regressing out: nUMI, percent.mito</code></pre>
-<pre><code>## 
-## Time Elapsed:  10.7996120452881 secs</code></pre>
-<pre><code>## Scaling data matrix</code></pre>
-<pre class="r"><code>pbmc &lt;- RunPCA(object=pbmc, pc.genes=pbmc@var.genes, do.print=TRUE, pcs.print=1:5, 
-    genes.print=5)</code></pre>
-<pre><code>## [1] &quot;PC1&quot;
-## [1] &quot;ENSG00000101439&quot; &quot;ENSG00000011600&quot; &quot;ENSG00000085265&quot; &quot;ENSG00000204482&quot;
-## [5] &quot;ENSG00000204472&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000213402&quot; &quot;ENSG00000008517&quot; &quot;ENSG00000227507&quot; &quot;ENSG00000116824&quot;
-## [5] &quot;ENSG00000172543&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC2&quot;
-## [1] &quot;ENSG00000105374&quot; &quot;ENSG00000100453&quot; &quot;ENSG00000180644&quot; &quot;ENSG00000077984&quot;
-## [5] &quot;ENSG00000145649&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000156738&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000100721&quot;
-## [5] &quot;ENSG00000179344&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC3&quot;
-## [1] &quot;ENSG00000163737&quot; &quot;ENSG00000163736&quot; &quot;ENSG00000168497&quot; &quot;ENSG00000113140&quot;
-## [5] &quot;ENSG00000127920&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000051523&quot; &quot;ENSG00000231389&quot; &quot;ENSG00000223865&quot; &quot;ENSG00000196126&quot;
-## [5] &quot;ENSG00000104894&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC4&quot;
-## [1] &quot;ENSG00000008517&quot; &quot;ENSG00000179144&quot; &quot;ENSG00000165272&quot; &quot;ENSG00000082074&quot;
-## [5] &quot;ENSG00000172005&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000007312&quot; &quot;ENSG00000156738&quot;
-## [5] &quot;ENSG00000179344&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC5&quot;
-## [1] &quot;ENSG00000179639&quot; &quot;ENSG00000100079&quot; &quot;ENSG00000110077&quot; &quot;ENSG00000143546&quot;
-## [5] &quot;ENSG00000132514&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000203747&quot; &quot;ENSG00000261222&quot; &quot;ENSG00000142089&quot; &quot;ENSG00000108798&quot;
-## [5] &quot;ENSG00000172216&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;</code></pre>
+<pre class="r"><code># FeatureScatter is typically used to visualize feature-feature relationships, but can be used
+# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
+
+plot1 &lt;- FeatureScatter(pbmc, feature1 = &quot;nCount_RNA&quot;, feature2 = &quot;percent.mt&quot;)</code></pre>
+<pre><code>## Warning in cor(x = data[, 1], y = data[, 2]): the standard deviation is
+## zero</code></pre>
+<pre class="r"><code>plot2 &lt;- FeatureScatter(pbmc, feature1 = &quot;nCount_RNA&quot;, feature2 = &quot;nFeature_RNA&quot;)
+CombinePlots(plots = list(plot1, plot2))</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>pbmc &lt;- subset(pbmc, subset = nFeature_RNA &gt; 200 &amp; nFeature_RNA &lt; 2500 &amp; percent.mt &lt; 5)</code></pre>
+<pre class="r"><code>pbmc &lt;- NormalizeData(pbmc, normalization.method = &quot;LogNormalize&quot;, scale.factor = 10000)</code></pre>
+<pre class="r"><code>pbmc &lt;- FindVariableFeatures(pbmc, selection.method = &quot;vst&quot;, nfeatures = 2000)
+
+# Identify the 10 most highly variable genes
+top10 &lt;- head(VariableFeatures(pbmc), 10)
+
+# plot variable features with and without labels
+plot1 &lt;- VariableFeaturePlot(pbmc)
+plot2 &lt;- LabelPoints(plot = plot1, points = top10, repel = TRUE)</code></pre>
+<pre><code>## Warning: Using `as.character()` on a quosure is deprecated as of rlang 0.3.0.
+## Please use `as_label()` or `as_name()` instead.
+## This warning is displayed once per session.</code></pre>
+<pre><code>## When using repel, set xnudge and ynudge to 0 for optimal results</code></pre>
+<pre class="r"><code>CombinePlots(plots = list(plot1, plot2))</code></pre>
+<pre><code>## Warning: Transformation introduced infinite values in continuous x-axis</code></pre>
+<pre><code>## Warning: Transformation introduced infinite values in continuous x-axis</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code>all.genes &lt;- rownames(pbmc)
+pbmc &lt;- ScaleData(pbmc, features = all.genes)</code></pre>
+<pre><code>## Centering and scaling data matrix</code></pre>
+<pre class="r"><code>pbmc &lt;- RunPCA(pbmc, features = VariableFeatures(object = pbmc))</code></pre>
+<pre><code>## PC_ 1 
+## Positive:  ENSG00000251562, ENSG00000227507, ENSG00000008517, ENSG00000168685, ENSG00000116824, ENSG00000166710, ENSG00000072818, ENSG00000172543, ENSG00000197540, ENSG00000164543 
+##     ENSG00000198821, ENSG00000161570, ENSG00000196329, ENSG00000165272, ENSG00000145649, ENSG00000077984, ENSG00000009790, ENSG00000172005, ENSG00000171476, ENSG00000113088 
+##     ENSG00000078596, ENSG00000136997, ENSG00000179144, ENSG00000134954, ENSG00000133134, ENSG00000157978, ENSG00000115085, ENSG00000145220, ENSG00000105374, ENSG00000139187 
+## Negative:  ENSG00000101439, ENSG00000011600, ENSG00000204482, ENSG00000204472, ENSG00000087086, ENSG00000085265, ENSG00000090382, ENSG00000167996, ENSG00000163220, ENSG00000158869 
+##     ENSG00000025708, ENSG00000197766, ENSG00000100097, ENSG00000143546, ENSG00000163131, ENSG00000100079, ENSG00000197249, ENSG00000066336, ENSG00000142089, ENSG00000197746 
+##     ENSG00000126759, ENSG00000130066, ENSG00000216490, ENSG00000103187, ENSG00000163191, ENSG00000119655, ENSG00000030582, ENSG00000131981, ENSG00000084207, ENSG00000116701 
+## PC_ 2 
+## Positive:  ENSG00000105369, ENSG00000156738, ENSG00000100721, ENSG00000196735, ENSG00000179344, ENSG00000204287, ENSG00000247982, ENSG00000007312, ENSG00000196126, ENSG00000019582 
+##     ENSG00000223865, ENSG00000204257, ENSG00000237541, ENSG00000104894, ENSG00000198502, ENSG00000231389, ENSG00000242574, ENSG00000132185, ENSG00000122986, ENSG00000227507 
+##     ENSG00000095585, ENSG00000083454, ENSG00000254709, ENSG00000140968, ENSG00000133789, ENSG00000138639, ENSG00000072694, ENSG00000167641, ENSG00000163683, ENSG00000154102 
+## Negative:  ENSG00000105374, ENSG00000077984, ENSG00000180644, ENSG00000145649, ENSG00000100453, ENSG00000137441, ENSG00000172543, ENSG00000115523, ENSG00000166710, ENSG00000159674 
+##     ENSG00000100450, ENSG00000129277, ENSG00000203747, ENSG00000197540, ENSG00000161570, ENSG00000198821, ENSG00000143185, ENSG00000169583, ENSG00000196139, ENSG00000122862 
+##     ENSG00000171476, ENSG00000196154, ENSG00000109861, ENSG00000075234, ENSG00000135046, ENSG00000163453, ENSG00000115738, ENSG00000008517, ENSG00000075624, ENSG00000143184 
+## PC_ 3 
+## Positive:  ENSG00000196735, ENSG00000105369, ENSG00000007312, ENSG00000179344, ENSG00000223865, ENSG00000019582, ENSG00000231389, ENSG00000156738, ENSG00000196126, ENSG00000198502 
+##     ENSG00000204287, ENSG00000237541, ENSG00000100721, ENSG00000247982, ENSG00000242574, ENSG00000204257, ENSG00000104894, ENSG00000122986, ENSG00000132185, ENSG00000140968 
+##     ENSG00000145287, ENSG00000095585, ENSG00000163683, ENSG00000166428, ENSG00000086730, ENSG00000133789, ENSG00000254709, ENSG00000083454, ENSG00000203747, ENSG00000137441 
+## Negative:  ENSG00000163736, ENSG00000163737, ENSG00000168497, ENSG00000113140, ENSG00000127920, ENSG00000154146, ENSG00000169704, ENSG00000150681, ENSG00000101162, ENSG00000120885 
+##     ENSG00000236304, ENSG00000180573, ENSG00000005961, ENSG00000010278, ENSG00000088726, ENSG00000171611, ENSG00000104267, ENSG00000111644, ENSG00000166681, ENSG00000108960 
+##     ENSG00000161911, ENSG00000124491, ENSG00000184702, ENSG00000176783, ENSG00000130830, ENSG00000166091, ENSG00000272053, ENSG00000102804, ENSG00000101335, ENSG00000185245 
+## PC_ 4 
+## Positive:  ENSG00000196735, ENSG00000180573, ENSG00000163737, ENSG00000007312, ENSG00000105369, ENSG00000168497, ENSG00000163736, ENSG00000127920, ENSG00000113140, ENSG00000156738 
+##     ENSG00000179344, ENSG00000019582, ENSG00000169704, ENSG00000223865, ENSG00000154146, ENSG00000150681, ENSG00000010278, ENSG00000236304, ENSG00000171611, ENSG00000120885 
+##     ENSG00000104267, ENSG00000237541, ENSG00000100721, ENSG00000196126, ENSG00000231389, ENSG00000101162, ENSG00000204287, ENSG00000088726, ENSG00000247982, ENSG00000005961 
+## Negative:  ENSG00000026025, ENSG00000168685, ENSG00000197956, ENSG00000143546, ENSG00000196154, ENSG00000008517, ENSG00000163220, ENSG00000197747, ENSG00000179144, ENSG00000170458 
+##     ENSG00000172005, ENSG00000100079, ENSG00000165272, ENSG00000116824, ENSG00000162444, ENSG00000085265, ENSG00000082074, ENSG00000133574, ENSG00000090382, ENSG00000135046 
+##     ENSG00000110077, ENSG00000163221, ENSG00000163191, ENSG00000110203, ENSG00000196329, ENSG00000204472, ENSG00000169429, ENSG00000186854, ENSG00000126709, ENSG00000251562 
+## PC_ 5 
+## Positive:  ENSG00000100453, ENSG00000105374, ENSG00000137441, ENSG00000115523, ENSG00000129277, ENSG00000077984, ENSG00000180644, ENSG00000143546, ENSG00000145649, ENSG00000159674 
+##     ENSG00000100450, ENSG00000169583, ENSG00000172543, ENSG00000006075, ENSG00000143185, ENSG00000163220, ENSG00000100079, ENSG00000161570, ENSG00000075234, ENSG00000170458 
+##     ENSG00000162444, ENSG00000196139, ENSG00000011600, ENSG00000163221, ENSG00000163453, ENSG00000110077, ENSG00000143184, ENSG00000084207, ENSG00000110203, ENSG00000197540 
+## Negative:  ENSG00000227507, ENSG00000168685, ENSG00000026025, ENSG00000165272, ENSG00000115165, ENSG00000166165, ENSG00000172005, ENSG00000166927, ENSG00000180817, ENSG00000110958 
+##     ENSG00000116824, ENSG00000224397, ENSG00000142512, ENSG00000172725, ENSG00000164111, ENSG00000102871, ENSG00000123416, ENSG00000189159, ENSG00000100292, ENSG00000082074 
+##     ENSG00000131042, ENSG00000008517, ENSG00000146386, ENSG00000057608, ENSG00000009790, ENSG00000163399, ENSG00000169508, ENSG00000131507, ENSG00000133574, ENSG00000165629</code></pre>
 <pre class="r"><code># Examine and visualize PCA results a few different ways
-PrintPCA(object=pbmc, pcs.print=1:5, genes.print=5, use.full=FALSE)</code></pre>
-<pre><code>## [1] &quot;PC1&quot;
-## [1] &quot;ENSG00000101439&quot; &quot;ENSG00000011600&quot; &quot;ENSG00000085265&quot; &quot;ENSG00000204482&quot;
-## [5] &quot;ENSG00000204472&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000213402&quot; &quot;ENSG00000008517&quot; &quot;ENSG00000227507&quot; &quot;ENSG00000116824&quot;
-## [5] &quot;ENSG00000172543&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC2&quot;
-## [1] &quot;ENSG00000105374&quot; &quot;ENSG00000100453&quot; &quot;ENSG00000180644&quot; &quot;ENSG00000077984&quot;
-## [5] &quot;ENSG00000145649&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000156738&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000100721&quot;
-## [5] &quot;ENSG00000179344&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC3&quot;
-## [1] &quot;ENSG00000163737&quot; &quot;ENSG00000163736&quot; &quot;ENSG00000168497&quot; &quot;ENSG00000113140&quot;
-## [5] &quot;ENSG00000127920&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000051523&quot; &quot;ENSG00000231389&quot; &quot;ENSG00000223865&quot; &quot;ENSG00000196126&quot;
-## [5] &quot;ENSG00000104894&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC4&quot;
-## [1] &quot;ENSG00000008517&quot; &quot;ENSG00000179144&quot; &quot;ENSG00000165272&quot; &quot;ENSG00000082074&quot;
-## [5] &quot;ENSG00000172005&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000105369&quot; &quot;ENSG00000196735&quot; &quot;ENSG00000007312&quot; &quot;ENSG00000156738&quot;
-## [5] &quot;ENSG00000179344&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;
-## [1] &quot;PC5&quot;
-## [1] &quot;ENSG00000179639&quot; &quot;ENSG00000100079&quot; &quot;ENSG00000110077&quot; &quot;ENSG00000143546&quot;
-## [5] &quot;ENSG00000132514&quot;
-## [1] &quot;&quot;
-## [1] &quot;ENSG00000203747&quot; &quot;ENSG00000261222&quot; &quot;ENSG00000142089&quot; &quot;ENSG00000108798&quot;
-## [5] &quot;ENSG00000172216&quot;
-## [1] &quot;&quot;
-## [1] &quot;&quot;</code></pre>
-<pre class="r"><code>VizPCA(object=pbmc, pcs.use=1:2)</code></pre>
+print(pbmc[[&quot;pca&quot;]], dims = 1:5, nfeatures = 5)</code></pre>
+<pre><code>## PC_ 1 
+## Positive:  ENSG00000251562, ENSG00000227507, ENSG00000008517, ENSG00000168685, ENSG00000116824 
+## Negative:  ENSG00000101439, ENSG00000011600, ENSG00000204482, ENSG00000204472, ENSG00000087086 
+## PC_ 2 
+## Positive:  ENSG00000105369, ENSG00000156738, ENSG00000100721, ENSG00000196735, ENSG00000179344 
+## Negative:  ENSG00000105374, ENSG00000077984, ENSG00000180644, ENSG00000145649, ENSG00000100453 
+## PC_ 3 
+## Positive:  ENSG00000196735, ENSG00000105369, ENSG00000007312, ENSG00000179344, ENSG00000223865 
+## Negative:  ENSG00000163736, ENSG00000163737, ENSG00000168497, ENSG00000113140, ENSG00000127920 
+## PC_ 4 
+## Positive:  ENSG00000196735, ENSG00000180573, ENSG00000163737, ENSG00000007312, ENSG00000105369 
+## Negative:  ENSG00000026025, ENSG00000168685, ENSG00000197956, ENSG00000143546, ENSG00000196154 
+## PC_ 5 
+## Positive:  ENSG00000100453, ENSG00000105374, ENSG00000137441, ENSG00000115523, ENSG00000129277 
+## Negative:  ENSG00000227507, ENSG00000168685, ENSG00000026025, ENSG00000165272, ENSG00000115165</code></pre>
+<pre class="r"><code>VizDimLoadings(pbmc, dims = 1:2, reduction = &quot;pca&quot;)</code></pre>
 <p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-<pre class="r"><code>PCAPlot(object=pbmc, dim.1=1, dim.2=2)</code></pre>
+<pre class="r"><code>DimPlot(pbmc, reduction = &quot;pca&quot;)</code></pre>
 <p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
-<pre class="r"><code># ProjectPCA scores each gene in the dataset (including genes not included
-# in the PCA) based on their correlation with the calculated components.
-# Though we don&#39;t use this further here, it can be used to identify markers
-# that are strongly correlated with cellular heterogeneity, but may not have
-# passed through variable gene selection.  The results of the projected PCA
-# can be explored by setting use.full=T in the functions above
-pbmc &lt;- ProjectPCA(object=pbmc, do.print=FALSE)</code></pre>
-<pre class="r"><code>PCHeatmap(object=pbmc, pc.use=1, cells.use=500, do.balanced=TRUE, label.columns=FALSE)</code></pre>
-<pre><code>## Warning in heatmap.2(data.use, Rowv = NA, Colv = NA, trace = &quot;none&quot;, col =
-## col.use, : Discrepancy: Rowv is FALSE, while dendrogram is `both&#39;. Omitting
-## row dendogram.</code></pre>
-<pre><code>## Warning in heatmap.2(data.use, Rowv = NA, Colv = NA, trace = &quot;none&quot;, col
-## = col.use, : Discrepancy: Colv is FALSE, while dendrogram is `column&#39;.
-## Omitting column dendogram.</code></pre>
-<pre><code>## Warning in plot.window(...): &quot;dimTitle&quot; is not a graphical parameter</code></pre>
-<pre><code>## Warning in plot.xy(xy, type, ...): &quot;dimTitle&quot; is not a graphical parameter</code></pre>
-<pre><code>## Warning in title(...): &quot;dimTitle&quot; is not a graphical parameter</code></pre>
+<pre class="r"><code>DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<pre class="r"><code>DimHeatmap(pbmc, dims = 1:15, cells = 500, balanced = TRUE)</code></pre>
 <p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
-<pre class="r"><code>PCHeatmap(object=pbmc, pc.use=1:12, cells.use=500, do.balanced=TRUE, 
-    label.columns=FALSE, use.full=FALSE)</code></pre>
-<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <p>Small deviation from the tutorial. Skip the lengthy JackStraw computation.</p>
-<pre class="r"><code># NOTE: This process can take a long time for big datasets, comment out for
-# expediency.  More approximate techniques such as those implemented in
-# PCElbowPlot() can be used to reduce computation time
-if (FALSE) {
-    pbmc &lt;- JackStraw(object=pbmc, num.replicate=100, display.progress=FALSE)
-    JackStrawPlot(object=pbmc, PCs=1:12)
+<pre class="r"><code>if (FALSE) {
+    # NOTE: This process can take a long time for big datasets, comment out for expediency. More
+    # approximate techniques such as those implemented in ElbowPlot() can be used to reduce
+    # computation time
+    pbmc &lt;- JackStraw(pbmc, num.replicate = 100)
+    pbmc &lt;- ScoreJackStraw(pbmc, dims = 1:20)
+    JackStrawPlot(pbmc, dims = 1:15)
 }</code></pre>
-<pre class="r"><code>PCElbowPlot(object=pbmc)</code></pre>
-<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
-<pre class="r"><code># save.SNN=T saves the SNN so that the clustering algorithm can be rerun
-# using the same graph but with a different resolution value (see docs for
-# full details)
-pbmc &lt;- FindClusters(object=pbmc, reduction.type=&quot;pca&quot;, dims.use=1:10, 
-    resolution=0.6, print.output=0, save.SNN=TRUE)</code></pre>
-<pre class="r"><code>PrintFindClustersParams(object=pbmc)</code></pre>
-<pre><code>## Parameters used in latest FindClusters calculation run on: 2019-02-28 21:22:03
-## =============================================================================
-## Resolution: 0.6
-## -----------------------------------------------------------------------------
-## Modularity Function    Algorithm         n.start         n.iter
-##      1                   1                 100             10
-## -----------------------------------------------------------------------------
-## Reduction used          k.param          prune.SNN
-##      pca                 30                0.0667
-## -----------------------------------------------------------------------------
-## Dims used in calculation
-## =============================================================================
-## 1 2 3 4 5 6 7 8 9 10</code></pre>
-<pre class="r"><code>pbmc &lt;- RunTSNE(object=pbmc, dims.use=1:10, do.fast=TRUE)</code></pre>
-<pre class="r"><code># note that you can set do.label=T to help label individual clusters
-TSNEPlot(object=pbmc)</code></pre>
-<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<pre class="r"><code>ElbowPlot(pbmc)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<pre class="r"><code>pbmc &lt;- FindNeighbors(pbmc, dims = 1:10)</code></pre>
+<pre><code>## Computing nearest neighbor graph</code></pre>
+<pre><code>## Computing SNN</code></pre>
+<pre class="r"><code>pbmc &lt;- FindClusters(pbmc, resolution = 0.5)</code></pre>
+<pre><code>## Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+## 
+## Number of nodes: 2695
+## Number of edges: 97555
+## 
+## Running Louvain algorithm...
+## Maximum modularity in 10 random starts: 0.8746
+## Number of communities: 9
+## Elapsed time: 0 seconds</code></pre>
+<pre class="r"><code># Look at cluster IDs of the first 5 cells
+head(Idents(pbmc), 5)</code></pre>
+<pre><code>## Cell1 Cell2 Cell3 Cell4 Cell5 
+##     0     3     2     1     6 
+## Levels: 0 1 2 3 4 5 6 7 8</code></pre>
+<pre class="r"><code># If you haven&#39;t installed UMAP, you can do so via reticulate::py_install(packages =
+# &#39;umap-learn&#39;)
+pbmc &lt;- RunUMAP(pbmc, dims = 1:10)
+# note that you can set `label = TRUE` or use the LabelClusters function to help label
+# individual clusters
+DimPlot(pbmc, reduction = &quot;umap&quot;)</code></pre>
+<p><img src="0-Seurat_PBMC3k_tutorial_TENxPBMCData_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <p>Save the <code>seurat</code> object</p>
 <pre class="r"><code>saveRDS(pbmc, file=&quot;pbmc3k_tutorial.rds&quot;)</code></pre>
 <p>Save the original <code>SingleCellExperiment</code> object, after:</p>
@@ -680,15 +634,15 @@ TSNEPlot(object=pbmc)</code></pre>
 <li>adding the cluster assignments</li>
 <li>adding the PCA and t-SNE dimensionality reduction results</li>
 </ul>
-<pre class="r"><code>tenx_pbmc3k &lt;- tenx_pbmc3k[, pbmc@cell.names]
-colData(tenx_pbmc3k)[[&quot;seurat.ident&quot;]] &lt;- as.factor(pbmc@ident)
-reducedDim(tenx_pbmc3k, &quot;PCA&quot;) &lt;- pbmc@dr$pca@cell.embeddings
-reducedDim(tenx_pbmc3k, &quot;TSNE&quot;) &lt;- pbmc@dr$tsne@cell.embeddings
-colnames(tenx_pbmc3k) &lt;- NULL # remove the dummy cell names before exporting
+<pre class="r"><code>tenx_pbmc3k &lt;- tenx_pbmc3k[, colnames(pbmc)]
+colData(tenx_pbmc3k)[[&quot;seurat.ident&quot;]] &lt;- Idents(pbmc)
+reducedDim(tenx_pbmc3k, &quot;PCA&quot;) &lt;- Embeddings(pbmc, reduction = &quot;pca&quot;)
+reducedDim(tenx_pbmc3k, &quot;UMAP&quot;) &lt;- Embeddings(pbmc, reduction = &quot;umap&quot;)
+colnames(tenx_pbmc3k) &lt;- NULL # remove the superfluous dummy cell names before exporting
 saveRDS(tenx_pbmc3k, file=&quot;pbmc3k_tutorial.sce.rds&quot;)</code></pre>
 <p>Export the cluster identity vector. It will be included in the <em><a href="https://github.com/kevinrue/hancock">hancock</a></em> package, and mapped using the dummy cell names defined at the start of this notebook.</p>
-<pre class="r"><code>ident &lt;- pbmc@ident
-names(ident) &lt;- pbmc@cell.names
+<pre class="r"><code>ident &lt;- Idents(pbmc)
+names(ident) &lt;- colnames(pbmc)
 saveRDS(ident, &quot;pbmc3k.ident.rds&quot;)</code></pre>
 </div>
 <div id="see-also" class="section level1">
